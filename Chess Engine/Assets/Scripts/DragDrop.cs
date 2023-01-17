@@ -25,13 +25,11 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        Debug.Log("Pointer Down");
+        //Debug.Log("Pointer Down");
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("End Drag");
-        //canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
         if (!foundSquare)
             rectTransform.anchoredPosition = startPosition;
@@ -39,8 +37,6 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("Begin Dragging");
-        //canvasGroup.alpha = 0.6f;
         canvasGroup.blocksRaycasts = false; 
     }
 

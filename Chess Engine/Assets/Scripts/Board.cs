@@ -4,12 +4,15 @@ using UnityEngine;
 
 public class Board
 {
+    public static Board instance;
+
     public static int[] Square;
 
     public static bool WhiteToMove = true;
     
     #region SETTER AND GETTER
 
+    // Square Array, stores the Piece.Type and Piece.Color as an int for each square
     public int[] GetSquare()
     {
         return Square;
@@ -23,13 +26,24 @@ public class Board
             return;
         }
         Square = s;
-        Debug.Log("Successfully updated square array");
+    }
+
+    public bool GetWhiteToMove()
+    {
+        return WhiteToMove;
+    }
+
+    public void SetWhiteToMove(bool w)
+    {
+        WhiteToMove = w;
     }
 
     #endregion
 
     public void Initialize()
     {
+        instance = this;
+
         Square = new int[64];
     }
 }

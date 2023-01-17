@@ -6,12 +6,14 @@ using UnityEngine.EventSystems;
 
 public class SquareSlot : MonoBehaviour, IDropHandler
 {
-
-    private Image square;
+    private int[] square;
+    private Board board;
+    private Image slot;
+    private int oldSlotNum;
+    private int slotNum;
 
     public void OnDrop(PointerEventData eventData)
     {
-        Debug.Log("Drop");
         if (eventData.pointerDrag != null)
         {
             var pointerDrag = eventData.pointerDrag;
@@ -20,17 +22,60 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             pointerDrag.GetComponent<RectTransform>().anchoredPosition =
                         GetComponent<RectTransform>().anchoredPosition;
 
-            square = GetComponent<Image>();
-            if (square.sprite == null)
+            // Initialize
+            slot = GetComponent<Image>();
+            slotNum = int.Parse(transform.parent.name.Split(' ')[1]);
+            oldSlotNum = int.Parse(pointerDrag.transform.parent.name.Split(' ')[1]);
+            board = Board.instance;
+            square = board.GetSquare();
+            bool whiteToMove = board.GetWhiteToMove();
+
+            // Player already did the last move
+            if (square[oldSlotNum - 1] < Piece.Black && !whiteToMove)
+                return;
+            if (square[oldSlotNum - 1] > Piece.Black && whiteToMove)
+                return;
+            
+            // Targeted Square is empty
+            if (square[slotNum - 1] == 0)
             {
-                // Targeted Square is empty
-                square.sprite = pointerDrag.GetComponentInChildren<Image>().sprite;
-                square.color = new Color32(255, 255, 255, 255);
+                slot.sprite = pointerDrag.GetComponentInChildren<Image>().sprite;
+                slot.color = new Color32(255, 255, 255, 255);
+                square[slotNum - 1] = square[oldSlotNum - 1];
 
                 pointerDrag.GetComponentInChildren<Image>().sprite = null;
-                pointerDrag.GetComponentInChildren<Image>().color = new Color32(0, 0, 0, 0);
+                pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
+                square[oldSlotNum - 1] = 0;
+
+                board.SetWhiteToMove(!whiteToMove);
+                board.SetSquare(square);
             }
+            
+            // Targeted Square contains a friendly piece
+            if (square[slotNum - 1] < Piece.Black && whiteToMove)
+                return;
+            if (square[slotNum - 1] > Piece.Black && !whiteToMove)
+                return;
+
+            // Targeted Square contains an enemy piece
+            if (square[slotNum - 1] > Piece.Black && whiteToMove)
+                CapturePiece(pointerDrag, whiteToMove);
+            if (square[slotNum - 1] < Piece.Black && !whiteToMove)
+                CapturePiece(pointerDrag, whiteToMove);
         }
+    }
+
+    void CapturePiece(GameObject newPiece, bool whiteToMove)
+    {
+        slot.sprite = newPiece.GetComponentInChildren<Image>().sprite;
+        square[slotNum - 1] = square[oldSlotNum - 1];
+
+        newPiece.GetComponentInChildren<Image>().sprite = null;
+        newPiece.GetComponentInChildren<Image>().color = new Color32(0, 0, 0, 0);
+        square[oldSlotNum - 1] = 0;
+
+        board.SetWhiteToMove(!whiteToMove);
+        board.SetSquare(square);
     }
 
 }
