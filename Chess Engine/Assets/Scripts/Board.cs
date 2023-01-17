@@ -5,6 +5,8 @@ using UnityEngine;
 public class Board
 {
     public static int[] Square;
+
+    public static bool WhiteToMove = true;
     
     #region SETTER AND GETTER
 

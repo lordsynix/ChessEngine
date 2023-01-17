@@ -74,7 +74,9 @@ public class BoardGeneration : MonoBehaviour
             GameObject go = sq.transform.GetChild(0).gameObject;
             int index = squaresGO.IndexOf(sq);
             if (pieces[squares[index]] != null)
-                go.SetActive(true);
+            {
+                go.GetComponent<Image>().color = new Color32(255, 255, 255, 255);
+            } 
             go.GetComponent<Image>().sprite = pieces[squares[index]];
         }
     }
