@@ -30,6 +30,13 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             square = board.GetSquare();
             bool whiteToMove = board.GetWhiteToMove();
 
+            /*// Check if no piece is grabbed
+            if (square[int.Parse(eventData.pointerDrag.transform.parent.name.Split(' ')[1])] == 0)
+            {
+                Debug.Log("No piece grabbed" + eventData.pointerDrag.transform.parent.name.Split(' ')[1]);
+                return;
+            }*/
+
             // Player already did the last move
             if (square[oldSlotNum - 1] < Piece.Black && !whiteToMove)
                 return;
@@ -46,6 +53,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
                 pointerDrag.GetComponentInChildren<Image>().sprite = null;
                 pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
                 square[oldSlotNum - 1] = 0;
+
+                FindObjectOfType<AudioManager>().Play("move_normal"); // Sound Effect
 
                 board.SetWhiteToMove(!whiteToMove);
                 board.SetSquare(square);
@@ -73,6 +82,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         newPiece.GetComponentInChildren<Image>().sprite = null;
         newPiece.GetComponentInChildren<Image>().color = new Color32(0, 0, 0, 0);
         square[oldSlotNum - 1] = 0;
+
+        FindObjectOfType<AudioManager>().Play("move_capture"); // Sound Effect
 
         board.SetWhiteToMove(!whiteToMove);
         board.SetSquare(square);

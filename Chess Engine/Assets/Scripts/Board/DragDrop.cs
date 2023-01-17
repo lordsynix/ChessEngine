@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler,
                                        IDragHandler, IInitializePotentialDragHandler
 {
+    public Board board;
 
     public bool foundSquare = false;
 
@@ -14,6 +15,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     private CanvasGroup canvasGroup;
 
     private Vector2 startPosition;
+    private int[] square;
 
     private void Awake()
     {
@@ -25,7 +27,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        //Debug.Log("Pointer Down");
+        
     }
 
     public void OnEndDrag(PointerEventData eventData)
