@@ -7,10 +7,20 @@ public class GameManager : MonoBehaviour
 {
     public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 
+    public static GameManager instance;
     public Board board = new();
 
-    public int[] square = null; 
+    [Header("References")]
+    public GameObject squareInformationPrefab;
+    public GameObject squareInformationHolder;
+    public InputField fenInputField;
+    
+    [HideInInspector] public int[] square = null;
 
+    private void Awake()
+    {
+        instance = this;
+    }
 
     private void Start()
     {
@@ -21,7 +31,6 @@ public class GameManager : MonoBehaviour
     }
 
     // FEN String
-
     public void LoadFenPosition(string fen)
     {
         var pieceTypeFromSymbol = new Dictionary<char, int>()
@@ -62,5 +71,36 @@ public class GameManager : MonoBehaviour
         board.SetSquare(square);
         BoardGeneration.instance.GeneratePieces(square);
     }
+
+    // UI Buttons
+    public void OnGeneratePosition()
+    {
+        if (fenInputField != null)
+        {
+            board.SetSquare(new int[64]);
+            LoadFenPosition(fenInputField.text);
+        }
+    }
+
+    public void OnDebug()
+    {
+        square = board.GetSquare();
+
+        int i = 0;
+        foreach (int sq in square)
+        {
+            i++;
+            GameObject newSquareInformation = Instantiate(squareInformationPrefab,
+                                              squareInformationHolder.transform);
+
+            Text[] prefabTexts = newSquareInformation.GetComponentsInChildren<Text>();
+            
+            newSquareInformation.transform.SetParent(squareInformationHolder.transform);
+            prefabTexts[0].text = i.ToString();
+            prefabTexts[1].text = sq.ToString();
+        }
+        
+    }
+
 
 }

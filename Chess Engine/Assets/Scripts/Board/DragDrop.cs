@@ -8,14 +8,16 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     public Board board;
 
     public bool foundSquare = false;
+    public bool validData = true;
 
     private GameObject canvas;
 
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
+    private Canvas myCanvas;
 
     private Vector2 startPosition;
-    private int[] square;
+    private int slotNum;
 
     private void Awake()
     {
@@ -23,23 +25,30 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         startPosition = rectTransform.anchoredPosition;
+        myCanvas = GetComponent<Canvas>();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        int[] square = Board.instance.GetSquare();
         
+        slotNum = int.Parse(transform.parent.name.Split(' ')[1]);
+        if (square[slotNum - 1] == 0)
+            validData = false;            
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        canvasGroup.blocksRaycasts = false;
+        myCanvas.sortingOrder += 1;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
+        myCanvas.sortingOrder -= 1;
         if (!foundSquare)
             rectTransform.anchoredPosition = startPosition;
-    }
-
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        canvasGroup.blocksRaycasts = false; 
     }
 
     public void OnDrag(PointerEventData eventData)

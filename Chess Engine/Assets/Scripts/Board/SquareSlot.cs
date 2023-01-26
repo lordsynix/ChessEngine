@@ -18,6 +18,10 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         {
             var pointerDrag = eventData.pointerDrag;
 
+            // Check if selected piece isn't null
+            if (!pointerDrag.GetComponent<DragDrop>().validData)
+                return;
+
             pointerDrag.GetComponent<DragDrop>().foundSquare = true;
             pointerDrag.GetComponent<RectTransform>().anchoredPosition =
                         GetComponent<RectTransform>().anchoredPosition;
@@ -29,13 +33,6 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             board = Board.instance;
             square = board.GetSquare();
             bool whiteToMove = board.GetWhiteToMove();
-
-            /*// Check if no piece is grabbed
-            if (square[int.Parse(eventData.pointerDrag.transform.parent.name.Split(' ')[1])] == 0)
-            {
-                Debug.Log("No piece grabbed" + eventData.pointerDrag.transform.parent.name.Split(' ')[1]);
-                return;
-            }*/
 
             // Player already did the last move
             if (square[oldSlotNum - 1] < Piece.Black && !whiteToMove)
