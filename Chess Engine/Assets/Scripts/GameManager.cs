@@ -77,27 +77,66 @@ public class GameManager : MonoBehaviour
     {
         if (fenInputField != null)
         {
-            board.SetSquare(new int[64]);
+            ResetBoard();
             LoadFenPosition(fenInputField.text);
         }
+    }
+
+    void ResetBoard()
+    {
+        // Reset Board variables
+        board.SetSquare(new int[64]);
+
+        // Reset graphical board
+        List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
+
+        foreach (GameObject go in squaresGO)
+        {
+            Image piece = go.transform.GetChild(0).GetComponent<Image>();
+            piece.color = new Color32(255, 255, 255, 0);
+            piece.sprite = null;
+        }
+
     }
 
     public void OnDebug()
     {
         square = board.GetSquare();
 
-        int i = 0;
+        // Delete all old Square Information Rows
+        for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
+        {
+            Destroy(squareInformationHolder.transform.GetChild(i).gameObject);
+        }
+
+        // Instantiate new Square Information Rows
+        int j = 0;
         foreach (int sq in square)
         {
-            i++;
+            j++;
+
             GameObject newSquareInformation = Instantiate(squareInformationPrefab,
                                               squareInformationHolder.transform);
 
             Text[] prefabTexts = newSquareInformation.GetComponentsInChildren<Text>();
+            GameObject piece = newSquareInformation.transform.GetChild(2).gameObject;
+            Image pieceImage = piece.GetComponent<Image>();
             
             newSquareInformation.transform.SetParent(squareInformationHolder.transform);
-            prefabTexts[0].text = i.ToString();
+            prefabTexts[0].text = j.ToString();
             prefabTexts[1].text = sq.ToString();
+
+            
+            if (sq == 0)
+            {
+                pieceImage.sprite = null;
+                pieceImage.color = new Color32(0, 0, 0, 0);
+            }
+            else
+            {
+                pieceImage.sprite = BoardGeneration.instance.pieces[sq];
+                pieceImage.color = new Color32(255, 255, 255, 255);
+            }
         }
         
     }
