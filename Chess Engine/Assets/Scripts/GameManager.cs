@@ -5,15 +5,17 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+    // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b";
 
     public static GameManager instance;
     public Board board = new();
 
-    [Header("References")]
+    [Header("Debug Tools")]
     public GameObject squareInformationPrefab;
     public GameObject squareInformationHolder;
     public InputField fenInputField;
+    public Text sideToMove;
     
     [HideInInspector] public int[] square = null;
 
@@ -44,8 +46,11 @@ public class GameManager : MonoBehaviour
         };
 
         string fenBoard = fen.Split(' ')[0];
+        string fenToMove = fen.Split(' ')[1];
         int file = 0, rank = 0;
+        square = new int[64];
 
+        // Create the int values of the pieces in the position
         foreach (char symbol in fenBoard)
         {
             if (symbol == '/')
@@ -70,13 +75,27 @@ public class GameManager : MonoBehaviour
         }
         board.SetSquare(square);
         BoardGeneration.instance.GeneratePieces(square);
+
+        // Set player to move
+        if (fenToMove == "w")
+            board.SetWhiteToMove(true);
+        else if (fenToMove == "b")
+            board.SetWhiteToMove(false);
+        else
+            Debug.LogWarning("Please enter a valid FEN-String");
     }
 
     // UI Buttons
     public void OnGeneratePosition()
     {
+        if (fenInputField.text == "")
+        {
+            Debug.LogWarning("Please enter a valid FEN-String");
+            return;
+        }
         if (fenInputField != null)
         {
+            
             ResetBoard();
             LoadFenPosition(fenInputField.text);
         }
@@ -138,7 +157,9 @@ public class GameManager : MonoBehaviour
                 pieceImage.color = new Color32(255, 255, 255, 255);
             }
         }
-        
+
+        // Set Side to move Text
+        sideToMove.text = "Player to move: <b>" + (board.GetWhiteToMove() ? "White </b>" : "Black </b>");
     }
 
 
