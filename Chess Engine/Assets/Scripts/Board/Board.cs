@@ -12,7 +12,7 @@ public class Board
     
     #region SETTER AND GETTER
 
-    // Square Array, stores the Piece.Type and Piece.Color as an int for each square
+    // Square Array, speichert Piece.Type und Piece.Color als int-Wert für jedes Feld
     public int[] GetSquare()
     {
         return Square;
@@ -28,6 +28,7 @@ public class Board
         Square = s;
     }
 
+    // Verwaltet den Spieler, der als nächstes spielen kann.
     public bool GetWhiteToMove()
     {
         return WhiteToMove;

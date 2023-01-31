@@ -35,6 +35,7 @@ public class BoardGeneration : MonoBehaviour
 
     void CreateGraphicalBoard()
     {
+        // Erstellt das Muster des Schachbretts für alle 64 Felder
         for (int rank = 0; rank < 8; rank++)
         {
             for (int file = 0; file < 8; file++)
@@ -51,11 +52,12 @@ public class BoardGeneration : MonoBehaviour
 
     void GenerateSquare (Vector2 position, bool isLightSquare)
     {
+        // Definiert für jedes Feld eine Farbe
         var squareColor = (isLightSquare) ? lightCol : darkCol;
 
-        // Instantiates a square by the given position as a child of the board panel.
-        // The Squares position has to be subtracted with the half of the width and negative
-        // half of the height of the parents transform to be correctly displayed.
+        // Initiiert ein Feld an der angegebenen Position als child des Board Panel.
+        // Die Feldposition muss mit der Hälfte der Breite und negativen Hälfte der
+        // Höhe des parent transform subtrahiert werden um korrekt abgebildet zu werden.
         GameObject newSquare = Instantiate(squarePrefab, transform);
         
         RectTransform rt_parent = (RectTransform)transform;
@@ -69,6 +71,7 @@ public class BoardGeneration : MonoBehaviour
 
     public void GeneratePieces(int[] squares)
     {
+        // Weist jedem Feld aufgrund seines int-Wertes eine Figur zu
         foreach (GameObject sq in squaresGO)
         {
             GameObject go = sq.transform.GetChild(0).gameObject;

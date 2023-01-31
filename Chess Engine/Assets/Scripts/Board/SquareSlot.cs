@@ -39,7 +39,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
                 return;
             if (square[oldSlotNum - 1] > Piece.Black && whiteToMove)
                 return;
-            
+
             // Targeted Square is empty
             if (square[slotNum - 1] == 0)
             {
@@ -55,8 +55,10 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
                 board.SetWhiteToMove(!whiteToMove);
                 board.SetSquare(square);
+
+                GameManager.instance.ExitDebug();
             }
-            
+
             // Targeted Square contains a friendly piece
             if (square[slotNum - 1] < Piece.Black && whiteToMove)
                 return;
@@ -84,6 +86,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
         board.SetWhiteToMove(!whiteToMove);
         board.SetSquare(square);
+
+        GameManager.instance.ExitDebug();
     }
 
 }

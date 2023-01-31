@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public Board board = new();
 
     [Header("Debug Tools")]
+    public GameObject details;
     public GameObject squareInformationPrefab;
     public GameObject squareInformationHolder;
     public InputField fenInputField;
@@ -50,7 +51,7 @@ public class GameManager : MonoBehaviour
         int file = 0, rank = 0;
         square = new int[64];
 
-        // Create the int values of the pieces in the position
+        // Weist den Figuren in der Position ihre int-Werte zu
         foreach (char symbol in fenBoard)
         {
             if (symbol == '/')
@@ -76,7 +77,7 @@ public class GameManager : MonoBehaviour
         board.SetSquare(square);
         BoardGeneration.instance.GeneratePieces(square);
 
-        // Set player to move
+        // Definiert den Spieler, welcher als nächstes Spielen kann
         if (fenToMove == "w")
             board.SetWhiteToMove(true);
         else if (fenToMove == "b")
@@ -103,10 +104,10 @@ public class GameManager : MonoBehaviour
 
     void ResetBoard()
     {
-        // Reset Board variables
+        // Brett-Variablen zurücksetzten
         board.SetSquare(new int[64]);
 
-        // Reset graphical board
+        // Grafisches Brett zurücksetzten
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
 
         foreach (GameObject go in squaresGO)
@@ -122,13 +123,13 @@ public class GameManager : MonoBehaviour
     {
         square = board.GetSquare();
 
-        // Delete all old Square Information Rows
+        // Löscht die alten Zeilen mit Informationen zu einem Feld
         for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
         {
             Destroy(squareInformationHolder.transform.GetChild(i).gameObject);
         }
 
-        // Instantiate new Square Information Rows
+        // Iniitiert neue Zeilen mit Informationen zu einem Feld
         int j = 0;
         foreach (int sq in square)
         {
@@ -145,7 +146,7 @@ public class GameManager : MonoBehaviour
             prefabTexts[0].text = j.ToString();
             prefabTexts[1].text = sq.ToString();
 
-            
+            // Leeres Feld
             if (sq == 0)
             {
                 pieceImage.sprite = null;
@@ -158,9 +159,35 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Set Side to move Text
+        // Definiert den Spieler, welcher als nächstes Spielen kann
         sideToMove.text = "Player to move: <b>" + (board.GetWhiteToMove() ? "White </b>" : "Black </b>");
+
+        details.SetActive(true);
+
+        // Visualisiert Informationen über ein Feld auf dem Brett
+        List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
+        int k = 0;
+        foreach (GameObject go in squaresGO)
+        {
+            k++;
+            Text[] texts = go.transform.GetChild(1).GetComponentsInChildren<Text>();
+            texts[0].text = k.ToString();
+            texts[1].text = square[k - 1].ToString();
+            go.transform.GetChild(1).gameObject.SetActive(true);
+        }
     }
 
+    public void ExitDebug()
+    {
+        // Deaktiviert Details Scrollbar
+        details.SetActive(false);
+
+        // Deaktiviert die grafischen Informationen für ein Feld
+        List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
+        foreach (GameObject go in squaresGO)
+        {
+            go.transform.GetChild(1).gameObject.SetActive(false);
+        }
+    }
 
 }
