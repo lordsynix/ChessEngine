@@ -107,7 +107,7 @@ public class GameManager : MonoBehaviour
         // Brett-Variablen zurücksetzten
         board.SetSquare(new int[64]);
 
-        // Grafisches Brett zurücksetzten
+        // Setzt die grafische Repräsentierung der Figuren zurück
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
 
         foreach (GameObject go in squaresGO)

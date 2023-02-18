@@ -60,8 +60,8 @@ public class BoardGeneration : MonoBehaviour
         // Höhe des parent transform subtrahiert werden um korrekt abgebildet zu werden.
         GameObject newSquare = Instantiate(squarePrefab, transform);
         
-        RectTransform rt_parent = (RectTransform)transform;
-        newSquare.transform.localPosition = position - new Vector2(rt_parent.rect.width / 2, -rt_parent.rect.height / 2);
+        RectTransform rtParent = (RectTransform)transform;
+        newSquare.transform.localPosition = position - new Vector2(rtParent.rect.width / 2, -rtParent.rect.height / 2);
         newSquare.GetComponent<Image>().color = squareColor;
         squareNumber++;
         newSquare.name = "Square " + squareNumber;

@@ -28,7 +28,7 @@ public class Board
         Square = s;
     }
 
-    // Verwaltet den Spieler, der als nächstes spielen kann.
+    // Verwaltet den Spieler, der als nächstes spielen kann
     public bool GetWhiteToMove()
     {
         return WhiteToMove;
