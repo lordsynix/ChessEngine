@@ -4,6 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// Die Klasse <c>SquareSlot</c> stellt ein Feld auf dem Spielbrett dar.
+/// Beinhaltet die grafische Darstellung der Figuren auf dem Feld.
+/// </summary>
 public class SquareSlot : MonoBehaviour, IDropHandler
 {
     private int[] square;
@@ -41,6 +45,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             if (square[oldSlotNum - 1] > Piece.Black && whiteToMove)
                 return;
 
+            // TODO Überprüfen, ob das ausgewählte Feld nicht auf dem Brett ist mit Square120
+
             // Überprüft, ob das anvisierte Feld leer ist
             if (square[slotNum - 1] == 0)
             {
@@ -73,7 +79,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
         square[oldSlotNum - 1] = 0;
 
-        // Sound Effekt
+        // SFX
         FindObjectOfType<AudioManager>().Play("move_normal");
 
         // Aktualisiert die Brett-Variablen
@@ -95,7 +101,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         newPiece.GetComponentInChildren<Image>().color = new Color32(0, 0, 0, 0);
         square[oldSlotNum - 1] = 0;
 
-        // Sound Effekt
+        // SFX
         FindObjectOfType<AudioManager>().Play("move_capture");
 
         // Aktualisiert die Brett-Variablen

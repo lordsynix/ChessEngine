@@ -75,9 +75,10 @@ public class GameManager : MonoBehaviour
             }
         }
         board.SetSquare(square);
+        board.Get120From64();
         BoardGeneration.instance.GeneratePieces(square);
 
-        // Definiert den Spieler, welcher als nächstes Spielen kann
+        // Definiert den Spieler, welcher als nächstes Spielen darf
         if (fenToMove == "w")
             board.SetWhiteToMove(true);
         else if (fenToMove == "b")
