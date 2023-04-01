@@ -1275,7 +1275,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1568758888}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: OnDebug
+        m_MethodName: DebugButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1955,7 +1955,9 @@ MonoBehaviour:
   squareInformationHolder: {fileID: 1420640533}
   fenInputField: {fileID: 470047279}
   sideToMove: {fileID: 907143922}
+  debugMode: 0
   square: 
+  square120: 
 --- !u!114 &1568758889
 MonoBehaviour:
   m_ObjectHideFlags: 0

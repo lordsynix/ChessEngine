@@ -1,13 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using static MoveGenerator;
 
 // Importiert verschiedene Klassen von Unity, um den Drag and Drop Mechanismus zu vereinfachen
 public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler,
                                        IDragHandler, IInitializePotentialDragHandler
 {
-    public Board board;
+    private Board board;
+    public MoveGenerator moveGenerator = new();
+
+    public List<GameObject> highlightedMoves;
 
     public bool foundSquare = false;
     public bool validData = true;
@@ -24,21 +30,39 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     private void Awake()
     {
         // Weist den Referenzen die entsprechenden Komponenten zu
+        board = Board.instance;
         canvas = GameObject.Find("Canvas");
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         startPosition = rectTransform.anchoredPosition;
         myCanvas = GetComponent<Canvas>();
+        highlightedMoves = new();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        int[] square = Board.instance.GetSquare();
-        slotNum = int.Parse(transform.parent.name.Split(' ')[1]);
+        int[] square120 = Board.instance.GetSquare120();
+        slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
         // Verhindert, dass ein leeres Feld ausgewählt werden kann
-        if (square[slotNum - 1] == 0)
-            validData = false;            
+        if (square120[slotNum] == 0)
+            validData = false;
+
+        // Generiert alle Züge für die ausgewählte Figur
+        List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
+        if (moves != null)
+        {
+            foreach (Move move in moves)
+            {
+                // Aktiviert die grafische Visualisierung der möglichen Felder
+                int targetSquare = move.TargetSquare;
+                GameObject targetSquareGO = BoardGeneration.instance.squaresGO
+                    [Board.instance.ConvertIndex120To64(targetSquare)];
+
+                highlightedMoves.Add(targetSquareGO);
+                targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
+            }
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -55,6 +79,12 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         myCanvas.sortingOrder -= 1;
         if (!foundSquare)
             rectTransform.anchoredPosition = startPosition;
+
+        // Deaktiviert die grafische Visualisierung der möglichen Felder
+        foreach (GameObject go in highlightedMoves)
+        {
+            go.transform.GetChild(2).gameObject.SetActive(false);
+        }
     }
 
     public void OnDrag(PointerEventData eventData)

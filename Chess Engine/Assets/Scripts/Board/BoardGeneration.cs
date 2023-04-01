@@ -1,7 +1,13 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Die Klasse <c>BoardGeneration</c> ist für die Generierung der Benutzeroberfläche 
+/// des Spielfelds beim Starten des Programms zuständig. Beinhaltet Funktionen für die 
+/// Visualisierung der Felder und Figuren auf dem Brett.
+/// </summary>
 public class BoardGeneration : MonoBehaviour
 {
     public GameObject squarePrefab;
@@ -11,7 +17,7 @@ public class BoardGeneration : MonoBehaviour
     [HideInInspector] public List<GameObject> squaresGO;
 
     private float squareWidth = 37.5f;
-    private int squareNumber = 0;
+    private int sqNum = 0;
 
     [Header("Colors")]
     [SerializeField] private Color lightCol = Color.white; // #DDC39C
@@ -47,7 +53,7 @@ public class BoardGeneration : MonoBehaviour
                 GenerateSquare(position, isLightSquare);
             }
         }
-        squareNumber = 0;
+        sqNum = 0;
     }
 
     void GenerateSquare (Vector2 position, bool isLightSquare)
@@ -63,24 +69,39 @@ public class BoardGeneration : MonoBehaviour
         RectTransform rtParent = (RectTransform)transform;
         newSquare.transform.localPosition = position - new Vector2(rtParent.rect.width / 2, -rtParent.rect.height / 2);
         newSquare.GetComponent<Image>().color = squareColor;
-        squareNumber++;
-        newSquare.name = "Square " + squareNumber;
-
+        int sq120 = GameManager.instance.board.ConvertIndex64To120(sqNum);
+        Variables.Object(newSquare.transform.GetChild(0)).Set("SquareNum", sq120);
+        sqNum++;
         squaresGO.Add(newSquare);
     }
 
+    /// <summary>
+    /// Die Methode <c>GeneratePieces</c> weist jedem Feld 
+    /// aufgrund seines int-Wertes eine Figur zu.
+    /// </summary>
     public void GeneratePieces(int[] squares)
     {
-        // Weist jedem Feld aufgrund seines int-Wertes eine Figur zu
-        foreach (GameObject sq in squaresGO)
+        for (int i = 0; i < squaresGO.Count; i++)
         {
-            GameObject go = sq.transform.GetChild(0).gameObject;
-            int index = squaresGO.IndexOf(sq);
-            if (pieces[squares[index]] != null)
+            GameObject go = squaresGO[i].transform.GetChild(0).gameObject;
+            if (pieces[squares[i]] != null)
             {
                 go.GetComponent<Image>().color = new Color32(255, 255, 255, 255);
-            } 
-            go.GetComponent<Image>().sprite = pieces[squares[index]];
+            }
+            go.GetComponent<Image>().sprite = pieces[squares[i]];
+        }
+    }
+
+    /// <summary>
+    /// Die Methode <c>ResetBoard</c> setzt die grafische Repräsentierung der Figuren zurück
+    /// </summary>
+    public void ResetBoard()
+    {
+        foreach (GameObject go in squaresGO)
+        {
+            Image piece = go.transform.GetChild(0).GetComponent<Image>();
+            piece.color = new Color32(255, 255, 255, 0);
+            piece.sprite = null;
         }
     }
 }

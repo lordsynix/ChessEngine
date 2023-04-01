@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Die Klasse <c>GameManager</c> ist für die Verwaltung des Spielablaufs zuständig.
+/// Initiiert alle anderen Klassen und dient als Fundament des Programms.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
@@ -10,6 +14,7 @@ public class GameManager : MonoBehaviour
 
     public static GameManager instance;
     public Board board = new();
+    //public MoveGenerator moveGenerator = new();
 
     [Header("Debug Tools")]
     public GameObject details;
@@ -17,8 +22,10 @@ public class GameManager : MonoBehaviour
     public GameObject squareInformationHolder;
     public InputField fenInputField;
     public Text sideToMove;
+    public bool debugMode = false;
     
-    [HideInInspector] public int[] square = null;
+    [HideInInspector] public int[] square64 = null;
+    [HideInInspector] public int[] square120 = null;
 
     private void Awake()
     {
@@ -28,63 +35,86 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         board.Initialize();
-        square = board.GetSquare();
+        square120 = board.GetSquare120();
 
         LoadFenPosition(startFEN);
+    }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+            _Debug();
+    }
+
+    void _Debug()
+    {
+        square64 = board.GetSquare64();
+        int i = 0;
+        foreach (int sq in square64)
+        {
+            UnityEngine.Debug.Log(i + " : " + sq);
+            i++;
+        }
     }
 
     // FEN String
     public void LoadFenPosition(string fen)
     {
-        var pieceTypeFromSymbol = new Dictionary<char, int>()
+        try
         {
-            ['k'] = Piece.King,
-            ['p'] = Piece.Pawn,
-            ['n'] = Piece.Knight,
-            ['b'] = Piece.Bishop,
-            ['r'] = Piece.Rook,
-            ['q'] = Piece.Queen
-        };
-
-        string fenBoard = fen.Split(' ')[0];
-        string fenToMove = fen.Split(' ')[1];
-        int file = 0, rank = 0;
-        square = new int[64];
-
-        // Weist den Figuren in der Position ihre int-Werte zu
-        foreach (char symbol in fenBoard)
-        {
-            if (symbol == '/')
+            var pieceTypeFromSymbol = new Dictionary<char, int>()
             {
-                file = 0;
-                rank++;
-            }
-            else
+                ['k'] = Piece.KING,
+                ['p'] = Piece.PAWN,
+                ['n'] = Piece.KNIGHT,
+                ['b'] = Piece.BISHOP,
+                ['r'] = Piece.ROOK,
+                ['q'] = Piece.QUEEN
+            };
+
+            string fenBoard = fen.Split(' ')[0];
+            string fenToMove = fen.Split(' ')[1];
+            int file = 0, rank = 0;
+            square64 = new int[64];
+
+            // Weist den Figuren in der Position ihre int-Werte zu
+            foreach (char symbol in fenBoard)
             {
-                if (char.IsDigit(symbol))
+                if (symbol == '/')
                 {
-                    file += (int)char.GetNumericValue(symbol);
+                    file = 0;
+                    rank++;
                 }
                 else
                 {
-                    int pieceColor = (char.IsUpper(symbol)) ? Piece.White : Piece.Black;
-                    int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
-                    square[rank * 8 + file] = pieceColor | pieceType;
-                    file++;
+                    if (char.IsDigit(symbol))
+                    {
+                        file += (int)char.GetNumericValue(symbol);
+                    }
+                    else
+                    {
+                        int pieceColor = (char.IsUpper(symbol)) ? Piece.WHITE : Piece.BLACK;
+                        int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
+                        square64[rank * 8 + file] = pieceColor | pieceType;
+                        file++;
+                    }
                 }
             }
-        }
-        board.SetSquare(square);
-        board.Get120From64();
-        BoardGeneration.instance.GeneratePieces(square);
+            board.SetSquare64(square64);
+            BoardGeneration.instance.GeneratePieces(square64);
 
-        // Definiert den Spieler, welcher als nächstes Spielen darf
-        if (fenToMove == "w")
-            board.SetWhiteToMove(true);
-        else if (fenToMove == "b")
-            board.SetWhiteToMove(false);
-        else
-            Debug.LogWarning("Please enter a valid FEN-String");
+            // Definiert den Spieler, welcher als nächstes Spielen darf
+            if (fenToMove == "w")
+                board.SetWhiteToMove(true);
+            else if (fenToMove == "b")
+                board.SetWhiteToMove(false);
+            else
+                UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
+        }
+        catch
+        {
+            fenInputField.text = "Invalid position";
+            LoadFenPosition(startFEN);
+        }
     }
 
     // UI Buttons
@@ -92,7 +122,7 @@ public class GameManager : MonoBehaviour
     {
         if (fenInputField.text == "")
         {
-            Debug.LogWarning("Please enter a valid FEN-String");
+            UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
             return;
         }
         if (fenInputField != null)
@@ -102,28 +132,32 @@ public class GameManager : MonoBehaviour
             LoadFenPosition(fenInputField.text);
         }
     }
-
+    
     void ResetBoard()
     {
         // Brett-Variablen zurücksetzten
-        board.SetSquare(new int[64]);
+        board.SetSquare120(new int[120]);
 
         // Setzt die grafische Repräsentierung der Figuren zurück
-        List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
-
-        foreach (GameObject go in squaresGO)
-        {
-            Image piece = go.transform.GetChild(0).GetComponent<Image>();
-            piece.color = new Color32(255, 255, 255, 0);
-            piece.sprite = null;
-        }
-
+        BoardGeneration.instance.ResetBoard();
     }
 
-    public void OnDebug()
+    public void DebugButton()
     {
-        square = board.GetSquare();
+        debugMode = !debugMode;
+        if (debugMode)
+            Debug();
+        else
+            ExitDebug();
+    }
 
+    public void Debug()
+    {
+        if (!debugMode)
+            return;
+                
+        square64 = board.Square64From120();
+        
         // Löscht die alten Zeilen mit Informationen zu einem Feld
         for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
         {
@@ -132,10 +166,8 @@ public class GameManager : MonoBehaviour
 
         // Iniitiert neue Zeilen mit Informationen zu einem Feld
         int j = 0;
-        foreach (int sq in square)
+        foreach (int sq in square64)
         {
-            j++;
-
             GameObject newSquareInformation = Instantiate(squareInformationPrefab,
                                               squareInformationHolder.transform);
 
@@ -146,6 +178,8 @@ public class GameManager : MonoBehaviour
             newSquareInformation.transform.SetParent(squareInformationHolder.transform);
             prefabTexts[0].text = j.ToString();
             prefabTexts[1].text = sq.ToString();
+
+            j++;
 
             // Leeres Feld
             if (sq == 0)
@@ -170,11 +204,11 @@ public class GameManager : MonoBehaviour
         int k = 0;
         foreach (GameObject go in squaresGO)
         {
-            k++;
             Text[] texts = go.transform.GetChild(1).GetComponentsInChildren<Text>();
             texts[0].text = k.ToString();
-            texts[1].text = square[k - 1].ToString();
+            texts[1].text = square64[k].ToString();
             go.transform.GetChild(1).gameObject.SetActive(true);
+            k++;
         }
     }
 
