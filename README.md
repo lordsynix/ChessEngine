@@ -2,6 +2,22 @@
 Access to my thesis software
 
 
+Getting started with Unity:
+
+1) Download Unity Version 2021.3.12f1
+
+2) Download this repository
+
+3) Open project from Unity Hub
+
+4) Select SampleScene in the editor under Assets/Scenes/SampleScene
+
+
+Getting started with my Launcher:
+
+1) Visit 
+
+
 Currently in progress:
 
 ▒░░░░░░░░░░ 5%
