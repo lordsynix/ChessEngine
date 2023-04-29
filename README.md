@@ -15,7 +15,15 @@ Getting started with Unity:
 
 Getting started with my Launcher:
 
-1) Visit 
+1) Visit https://packentertainment.net
+
+2) Click Downlaod Launcher
+
+3) Follow the steps shown
+
+4) Download the project Chess Engine
+
+5) Enter the password §Access4Members
 
 
 Currently in progress:
