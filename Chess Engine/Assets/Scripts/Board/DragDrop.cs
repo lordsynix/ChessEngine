@@ -13,8 +13,6 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     private Board board;
     public MoveGenerator moveGenerator = new();
 
-    public List<GameObject> highlightedMoves;
-
     public bool foundSquare = false;
     public bool validData = true;
 
@@ -36,7 +34,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         canvasGroup = GetComponent<CanvasGroup>();
         startPosition = rectTransform.anchoredPosition;
         myCanvas = GetComponent<Canvas>();
-        highlightedMoves = new();
+        GameManager.instance.highlightedMoves = new();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -52,16 +50,10 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
         if (moves != null)
         {
-            foreach (Move move in moves)
-            {
-                // Aktiviert die grafische Visualisierung der möglichen Felder
-                int targetSquare = move.TargetSquare;
-                GameObject targetSquareGO = BoardGeneration.instance.squaresGO
-                    [Board.instance.ConvertIndex120To64(targetSquare)];
+            // Überprüft, ob die Visualisierung für mögliche Felder bereits aktiv ist
+            GameManager.instance.DeactivateMoveVisualisation();
 
-                highlightedMoves.Add(targetSquareGO);
-                targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
-            }
+            GameManager.instance.ActivateMoveVisualization(moves);
         }
     }
 
@@ -80,11 +72,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         if (!foundSquare)
             rectTransform.anchoredPosition = startPosition;
 
-        // Deaktiviert die grafische Visualisierung der möglichen Felder
-        foreach (GameObject go in highlightedMoves)
-        {
-            go.transform.GetChild(2).gameObject.SetActive(false);
-        }
+        GameManager.instance.DeactivateMoveVisualisation();
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -99,4 +87,5 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         eventData.useDragThreshold = false;
     }
 
+    
 }

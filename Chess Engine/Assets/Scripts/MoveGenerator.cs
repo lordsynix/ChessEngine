@@ -16,6 +16,9 @@ public class MoveGenerator
     #endregion
 
     public static readonly int[] DirectionOffsets = { 10, -10, 1, -1, 11, -11, 9, -9 };
+    public static readonly int[] KnightOffsets = { -12, -21, -19, -6, 12, 21, 19, 6 };
+    public static readonly int[] WhitePawnOffsets = { -10, -20, -11, -9 };
+    public static readonly int[] BlackPawnOffsets = { 10, 20, 11, 9 };
     public struct Move
     {
         public readonly int StartSquare;
@@ -57,6 +60,15 @@ public class MoveGenerator
         if (Piece.IsSlidingPiece(piece))
         {
             GenerateSlidingMoves(startSquare, piece);
+        } else if (Piece.IsKnight(piece))
+        {
+            GenerateKnightMoves(startSquare);
+        } else if (Piece.IsPawn(piece))
+        {
+            GeneratePawnMoves(startSquare, piece);
+        } else if (Piece.IsKing(piece))
+        {
+            GenerateKingMoves(startSquare);
         }
 
         return moves;
@@ -74,30 +86,79 @@ public class MoveGenerator
                 int targetSquare = startSquare + DirectionOffsets[dirIndex] * (n + 1);
                 int pieceOnTargetSquare = square120[targetSquare];
 
-                // Spielfeldrand erreicht
-                if (pieceOnTargetSquare == -1)
-                {
-                    //Debug.Log("Move invalid because square " + targetSquare + " is over the edge.");
+                if (!LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare))
                     break;
-                }
-
-                // Blockiert von eigenen Figur
-                if (Piece.IsColor(pieceOnTargetSquare, friendlyColor))
-                {
-                    //Debug.Log("Move invalid because friendly piece at " + targetSquare + " : " + pieceOnTargetSquare + " : " + startSquare);
-                    break;
-                }
-
-                moves.Add(new Move(startSquare, targetSquare));
-                //Debug.Log("Added a move from " + startSquare + " to " + targetSquare);
-
-                // Blockiert von gegnerischen Figur
-                if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
-                {
-                    //Debug.Log("Skipped direction because of an enemy piece at " + targetSquare);
-                    break;
-                }
             }
         }
+    }
+
+    void GenerateKnightMoves(int startSquare)
+    {
+        for (int dirIndex = 0; dirIndex < 8; dirIndex++)
+        {
+            int targetSquare = startSquare + KnightOffsets[dirIndex];
+            int pieceOnTargetSquare = square120[targetSquare];
+
+            LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+        }
+    }
+
+    void GeneratePawnMoves(int startSquare, int piece)
+    {
+        for (int dirIndex = 0; dirIndex < 4; dirIndex++)
+        {
+            if (Piece.IsColor(piece, Piece.WHITE))
+            {
+                int targetSquare = startSquare + WhitePawnOffsets[dirIndex];
+                int pieceOnTargetSquare = square120[targetSquare];
+                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+            }
+            else
+            {
+                int targetSquare = startSquare + BlackPawnOffsets[dirIndex];
+                int pieceOnTargetSquare = square120[targetSquare];
+                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+            }
+        }
+    }
+
+    void GenerateKingMoves(int startSquare)
+    {
+        for (int dirOffset = 0; dirOffset < 8; dirOffset++)
+        {
+            int targetSquare = startSquare + DirectionOffsets[dirOffset];
+            int pieceOnTargetSquare = square120[targetSquare];
+
+            LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+        }
+    }
+
+    bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare)
+    {
+        // Spielfeldrand erreicht
+        if (pieceOnTargetSquare == -1)
+        {
+            //Debug.Log("Move invalid because square " + targetSquare + " is over the edge.");
+            return false;
+        }
+
+        // Blockiert von eigenen Figur
+        if (Piece.IsColor(pieceOnTargetSquare, friendlyColor))
+        {
+            //Debug.Log("Move invalid because friendly piece at " + targetSquare + " : " + pieceOnTargetSquare + " : " + startSquare);
+            return false;
+        }
+
+        moves.Add(new Move(startSquare, targetSquare));
+        //Debug.Log("Added a move from " + startSquare + " to " + targetSquare);
+
+        // Blockiert von gegnerischen Figur
+        if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
+        {
+            //Debug.Log("Skipped direction because of an enemy piece at " + targetSquare);
+            return false;
+        }
+
+        return true;
     }
 }

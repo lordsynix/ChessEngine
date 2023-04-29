@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static MoveGenerator;
 
 /// <summary>
 /// Die Klasse <c>GameManager</c> ist für die Verwaltung des Spielablaufs zuständig.
@@ -26,6 +27,8 @@ public class GameManager : MonoBehaviour
     
     [HideInInspector] public int[] square64 = null;
     [HideInInspector] public int[] square120 = null;
+
+    [HideInInspector] public List<GameObject> highlightedMoves;
 
     private void Awake()
     {
@@ -151,6 +154,7 @@ public class GameManager : MonoBehaviour
             ExitDebug();
     }
 
+    // Debug Mode
     public void Debug()
     {
         if (!debugMode)
@@ -225,4 +229,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Possible Moves Visualization
+    public void ActivateMoveVisualization(List<Move> moves)
+    {
+        foreach (Move move in moves)
+        {
+            // Aktiviert die grafische Visualisierung der möglichen Felder
+            int targetSquare = move.TargetSquare;
+            GameObject targetSquareGO = BoardGeneration.instance.squaresGO
+                [Board.instance.ConvertIndex120To64(targetSquare)];
+
+            highlightedMoves.Add(targetSquareGO);
+            targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
+        }
+    }
+
+    public void DeactivateMoveVisualisation()
+    {
+        // Deaktiviert die grafische Visualisierung der möglichen Felder
+        foreach (GameObject go in highlightedMoves)
+        {
+            go.transform.GetChild(2).gameObject.SetActive(false);
+        }
+    }
 }
