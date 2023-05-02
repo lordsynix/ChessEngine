@@ -1,8 +1,8 @@
 # ChessEngine
-Access to my thesis software
+*Access to my thesis software*
 
 
-Getting started with Unity:
+**Getting started with Unity:**
 
 1) Download Unity Version 2021.3.12f1
 
@@ -13,7 +13,7 @@ Getting started with Unity:
 4) Select SampleScene in the editor under Assets/Scenes/SampleScene
 
 
-Getting started with my Launcher:
+**Getting started with my Launcher:**
 
 1) Visit https://packentertainment.net
 
@@ -26,12 +26,12 @@ Getting started with my Launcher:
 5) Enter the password §Access4Members
 
 
-Currently in progress:
+**Currently in progress:**
 
 ▒░░░░░░░░░░ 5%
 
 
-Color Palette:
+**Color Palette:**
 
 #333333 - light grey,
 #212121 - dark grey,
@@ -40,7 +40,7 @@ Color Palette:
 #cd8500 - gold/orange
 
 
-Software:
+**Software:**
 
 Unity Version: 2021.3.12f1,
 Microsoft Visual Studio Version: 2022 17.1.32407
