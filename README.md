@@ -2,6 +2,7 @@
 *Access to my thesis software*
 
 
+
 **Getting started with Unity:**
 
 1) Download Unity Version 2021.3.12f1
@@ -11,6 +12,7 @@
 3) Open project from Unity Hub
 
 4) Select SampleScene in the editor under Assets/Scenes/SampleScene
+
 
 
 **Getting started with my Launcher:**
@@ -26,9 +28,11 @@
 5) Enter the password §Access4Members
 
 
+
 **Currently in progress:**
 
 ▒░░░░░░░░░░ 5%
+
 
 
 **Color Palette:**
@@ -38,6 +42,7 @@
 #660000 - dark red,
 #090040 - dark blue,
 #cd8500 - gold/orange
+
 
 
 **Software:**
