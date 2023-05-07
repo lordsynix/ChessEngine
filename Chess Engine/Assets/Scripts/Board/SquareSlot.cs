@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Unity.VisualScripting;
+using static MoveGenerator;
 
 /// <summary>
 /// Die Klasse <c>SquareSlot</c> stellt ein Feld auf dem Spielbrett dar.
@@ -41,8 +42,6 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             if (square120[oldSlotNum] > Piece.BLACK && whiteToMove)
                 return;
 
-            // TODO Überprüfen, ob das ausgewählte Feld nicht auf dem Brett ist mit Square120
-
             // Überprüft, ob das anvisierte Feld leer ist
             if (square120[slotNum] == 0)
             {
@@ -65,6 +64,11 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
     void Move(GameObject pointerDrag, bool whiteToMove)
     {
+        Move curMove = new Move(oldSlotNum, slotNum);
+
+        if (!GameManager.instance.possibleMoves.Contains(curMove))
+            return;
+
         // Setzt den Positionsursprung der Figur auf das neue Feld
         pointerDrag.GetComponent<DragDrop>().foundSquare = true;
         pointerDrag.GetComponent<RectTransform>().anchoredPosition =
@@ -88,12 +92,16 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         board.SetSquare120(square120);
 
         // Stellt sicher, dass der DebugMode verlassen wird
-        //GameManager.instance.ExitDebug();
         GameManager.instance.Debug();
     }
 
     void CapturePiece(GameObject newPiece, bool whiteToMove)
     {
+        Move curMove = new Move(oldSlotNum, slotNum);
+
+        if (!GameManager.instance.possibleMoves.Contains(curMove))
+            return;
+
         // Setzt den Positionsursprung der Figur auf das neue Feld
         newPiece.GetComponent<DragDrop>().foundSquare = true;
         newPiece.GetComponent<RectTransform>().anchoredPosition =

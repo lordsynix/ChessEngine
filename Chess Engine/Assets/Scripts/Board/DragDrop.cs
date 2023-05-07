@@ -10,7 +10,6 @@ using static MoveGenerator;
 public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler,
                                        IDragHandler, IInitializePotentialDragHandler
 {
-    private Board board;
     public MoveGenerator moveGenerator = new();
 
     public bool foundSquare = false;
@@ -28,7 +27,6 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     private void Awake()
     {
         // Weist den Referenzen die entsprechenden Komponenten zu
-        board = Board.instance;
         canvas = GameObject.Find("Canvas");
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
@@ -43,8 +41,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
         // Verhindert, dass ein leeres Feld ausgewählt werden kann
-        if (square120[slotNum] == 0)
-            validData = false;
+        if (square120[slotNum] == 0) validData = false;
 
         // Generiert alle Züge für die ausgewählte Figur
         List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
@@ -69,8 +66,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     {
         canvasGroup.blocksRaycasts = true;
         myCanvas.sortingOrder -= 1;
-        if (!foundSquare)
-            rectTransform.anchoredPosition = startPosition;
+        if (!foundSquare) rectTransform.anchoredPosition = startPosition;
 
         GameManager.instance.DeactivateMoveVisualisation();
     }

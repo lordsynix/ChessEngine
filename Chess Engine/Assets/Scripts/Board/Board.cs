@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,6 +15,7 @@ public class Board
     private static int[] Square120;
 
     public static bool WhiteToMove = true;
+    public static int EnPassantSquare = -1;
 
     #region SETTER AND GETTER
 
@@ -71,6 +73,16 @@ public class Board
     public void SetWhiteToMove(bool w)
     {
         WhiteToMove = w;
+    }
+
+    public int GetEnPassantSquare()
+    {
+        return EnPassantSquare;
+    }
+
+    public void SetEnPassantSquare(int e)
+    {
+        EnPassantSquare = e;
     }
 
     #endregion

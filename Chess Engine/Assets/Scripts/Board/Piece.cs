@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Die Klasse <c>Piece</c> beinhaltet die int-Konstanten für alle Schachfiguren.
+/// Die Klasse <c>Piece</c> beinhaltet die int-Konstanten für alle Schachfiguren
+/// sowie wichtige Überprüfungsmethoden für Figur und Farbe.
 /// Ein Figurenwert setzt sich als Binäraddition zwischen Farbe und Typ zusammen.
 /// </summary>
 public static class Piece

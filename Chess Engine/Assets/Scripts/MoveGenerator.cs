@@ -16,7 +16,7 @@ public class MoveGenerator
     #endregion
 
     public static readonly int[] DirectionOffsets = { 10, -10, 1, -1, 11, -11, 9, -9 };
-    public static readonly int[] KnightOffsets = { -12, -21, -19, -6, 12, 21, 19, 6 };
+    public static readonly int[] KnightOffsets = { -12, -21, -19, -8, 12, 21, 19, 8 };
     public static readonly int[] WhitePawnOffsets = { -10, -20, -11, -9 };
     public static readonly int[] BlackPawnOffsets = { 10, 20, 11, 9 };
     public struct Move
@@ -60,13 +60,16 @@ public class MoveGenerator
         if (Piece.IsSlidingPiece(piece))
         {
             GenerateSlidingMoves(startSquare, piece);
-        } else if (Piece.IsKnight(piece))
+        } 
+        else if (Piece.IsKnight(piece))
         {
             GenerateKnightMoves(startSquare);
-        } else if (Piece.IsPawn(piece))
+        } 
+        else if (Piece.IsPawn(piece))
         {
             GeneratePawnMoves(startSquare, piece);
-        } else if (Piece.IsKing(piece))
+        } 
+        else if (Piece.IsKing(piece))
         {
             GenerateKingMoves(startSquare);
         }
@@ -107,18 +110,35 @@ public class MoveGenerator
     {
         for (int dirIndex = 0; dirIndex < 4; dirIndex++)
         {
-            if (Piece.IsColor(piece, Piece.WHITE))
+            int offset = Piece.IsColor(piece, Piece.WHITE) ? WhitePawnOffsets[dirIndex] : BlackPawnOffsets[dirIndex];
+            int targetSquare = startSquare + offset;
+            int pieceOnTargetSquare = square120[targetSquare];
+
+            // Normaler Bauernzug
+            if (dirIndex == 0)
             {
-                int targetSquare = startSquare + WhitePawnOffsets[dirIndex];
-                int pieceOnTargetSquare = square120[targetSquare];
-                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, true);
             }
-            else
+
+            // Bauernzug für 2 Feldern
+            else if (dirIndex == 1)
             {
-                int targetSquare = startSquare + BlackPawnOffsets[dirIndex];
-                int pieceOnTargetSquare = square120[targetSquare];
-                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+                if (Piece.IsColor(piece, Piece.WHITE))
+                {
+                    if (startSquare >= 81 && startSquare <= 88)
+                    {
+                        LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+                    }
+                }
+                else
+                {
+                    if (startSquare >= 31 && startSquare <= 38)
+                        LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+                }
             }
+
+            // Züge nur möglich, wenn diagonal geschlagen wird
+            else CanCapture(pieceOnTargetSquare, startSquare, targetSquare);
         }
     }
 
@@ -133,7 +153,7 @@ public class MoveGenerator
         }
     }
 
-    bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare)
+    bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare, bool pawn = false)
     {
         // Spielfeldrand erreicht
         if (pieceOnTargetSquare == -1)
@@ -151,14 +171,29 @@ public class MoveGenerator
 
         moves.Add(new Move(startSquare, targetSquare));
         //Debug.Log("Added a move from " + startSquare + " to " + targetSquare);
-
+        
         // Blockiert von gegnerischen Figur
         if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
         {
+            // Stellt sicher, dass ein Bauer nicht nach vorne schlagen kann
+            if (pawn) moves.RemoveAt(moves.Count - 1);
+
             //Debug.Log("Skipped direction because of an enemy piece at " + targetSquare);
             return false;
         }
 
         return true;
+    }
+
+    bool CanCapture (int pieceOnTargetSquare, int startSquare, int targetSquare)
+    {
+        // Zug nur möglich, falls eine gegnerische Figur geschlagen werden kann
+        if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
+        {
+            moves.Add(new Move(startSquare, targetSquare));
+            return true;
+        }
+
+        return false;
     }
 }

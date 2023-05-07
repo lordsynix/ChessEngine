@@ -15,7 +15,6 @@ public class GameManager : MonoBehaviour
 
     public static GameManager instance;
     public Board board = new();
-    //public MoveGenerator moveGenerator = new();
 
     [Header("Debug Tools")]
     public GameObject details;
@@ -29,6 +28,7 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public int[] square120 = null;
 
     [HideInInspector] public List<GameObject> highlightedMoves;
+    public List<Move> possibleMoves;
 
     private void Awake()
     {
@@ -139,7 +139,7 @@ public class GameManager : MonoBehaviour
     void ResetBoard()
     {
         // Brett-Variablen zurücksetzten
-        board.SetSquare120(new int[120]);
+        board.SetSquare64(new int[64]);
 
         // Setzt die grafische Repräsentierung der Figuren zurück
         BoardGeneration.instance.ResetBoard();
@@ -232,6 +232,8 @@ public class GameManager : MonoBehaviour
     // Possible Moves Visualization
     public void ActivateMoveVisualization(List<Move> moves)
     {
+        possibleMoves = moves;
+
         foreach (Move move in moves)
         {
             // Aktiviert die grafische Visualisierung der möglichen Felder
@@ -251,5 +253,6 @@ public class GameManager : MonoBehaviour
         {
             go.transform.GetChild(2).gameObject.SetActive(false);
         }
+        highlightedMoves = new List<GameObject>();
     }
 }
