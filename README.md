@@ -11,7 +11,7 @@
 
 3) Open project from Unity Hub
 
-4) Select ChessBoard in the editor under Assets/Scenes/ChessBoard
+4) Select MainMenu in the editor under Assets/Scenes/MainMenu
 
 
 
@@ -19,7 +19,7 @@
 
 1) Visit https://packentertainment.net
 
-2) Click Downlaod Launcher
+2) Click Download Launcher
 
 3) Follow the steps shown
 
@@ -29,9 +29,10 @@
 
 
 
-**Currently in progress:**
+**Software:**
 
-▒░░░░░░░░░░ 5%
+Unity Version: 2021.3.12f1,
+Microsoft Visual Studio Version: 2022 17.1.32407
 
 
 
@@ -42,13 +43,6 @@
 #660000 - dark red,
 #090040 - dark blue,
 #cd8500 - gold/orange
-
-
-
-**Software:**
-
-Unity Version: 2021.3.12f1,
-Microsoft Visual Studio Version: 2022 17.1.32407
 
 
 
