@@ -11,7 +11,7 @@
 
 3) Open project from Unity Hub
 
-4) Select SampleScene in the editor under Assets/Scenes/SampleScene
+4) Select ChessBoard in the editor under Assets/Scenes/ChessBoard
 
 
 
