@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using static MoveGenerator;
 
 /// <summary>
-/// Die Klasse <c>GameManager</c> ist für die Verwaltung des Spielablaufs zuständig.
+/// Die Klasse <c>GameManager</c> ist fï¿½r die Verwaltung des Spielablaufs zustï¿½ndig.
 /// Initiiert alle anderen Klassen und dient als Fundament des Programms.
 /// </summary>
 public class GameManager : MonoBehaviour
@@ -80,7 +80,7 @@ public class GameManager : MonoBehaviour
             int file = 0, rank = 0;
             square64 = new int[64];
 
-            // Weist den Figuren in der Position ihre int-Werte zu
+            // Weist der internen Brettdarstellung (8x8-Darstellung) die int-Werte der Position zu.
             foreach (char symbol in fenBoard)
             {
                 if (symbol == '/')
@@ -106,7 +106,7 @@ public class GameManager : MonoBehaviour
             board.SetSquare64(square64);
             BoardGeneration.instance.GeneratePieces(square64);
 
-            // Definiert den Spieler, welcher als nächstes Spielen darf
+            // Definiert den Spieler, welcher als nÃ¤chstes Spielen darf.
             if (fenToMove == "w")
                 board.SetWhiteToMove(true);
             else if (fenToMove == "b")
@@ -116,12 +116,18 @@ public class GameManager : MonoBehaviour
         }
         catch
         {
+            // TODO Send Exception
             fenInputField.text = "Invalid position";
             LoadFenPosition(startFEN);
         }
     }
 
-    // UI Buttons
+    #region Buttons
+
+    /// <summary>
+    /// Die Methode <c>OnGeneratePosition</c> Ã¼bermittelt den eingegebenen 
+    /// FEN-String und generiert die grafische ReprÃ¤sentierung der Position.
+    /// </summary>
     public void OnGeneratePosition()
     {
         if (fenInputField.text == "")
@@ -131,21 +137,14 @@ public class GameManager : MonoBehaviour
         }
         if (fenInputField != null)
         {
-            
             ResetBoard();
             LoadFenPosition(fenInputField.text);
         }
     }
-    
-    void ResetBoard()
-    {
-        // Brett-Variablen zurücksetzten
-        board.SetSquare64(new int[64]);
 
-        // Setzt die grafische Repräsentierung der Figuren zurück
-        BoardGeneration.instance.ResetBoard();
-    }
-
+    /// <summary>
+    /// Die Methode <c>DebugButton</c> startet den Debug Mode fÃ¼r eine Position.
+    /// </summary>
     public void DebugButton()
     {
         debugMode = !debugMode;
@@ -153,6 +152,25 @@ public class GameManager : MonoBehaviour
             Debug();
         else
             ExitDebug();
+    }
+    
+    /// <summary>
+    /// Die Methode <c>MainMenu</c> lÃ¤dt das Startmenu.
+    /// </summary>
+    public void MainMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    #endregion
+    
+    void ResetBoard()
+    {
+        // Brett-Variablen zurï¿½cksetzten
+        board.ResetBoard();
+
+        // Setzt die grafische Reprï¿½sentierung der Figuren zurï¿½ck.
+        BoardGeneration.instance.ResetBoard();
     }
 
     // Debug Mode
@@ -163,7 +181,7 @@ public class GameManager : MonoBehaviour
                 
         square64 = board.Square64From120();
         
-        // Löscht die alten Zeilen mit Informationen zu einem Feld
+        // Lï¿½scht die alten Zeilen mit Informationen zu einem Feld
         for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
         {
             Destroy(squareInformationHolder.transform.GetChild(i).gameObject);
@@ -199,12 +217,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Definiert den Spieler, welcher als nächstes Spielen kann
+        // Definiert den Spieler, welcher als nï¿½chstes Spielen kann
         sideToMove.text = "Player to move: <b>" + (board.GetWhiteToMove() ? "White </b>" : "Black </b>");
 
         details.SetActive(true);
 
-        // Visualisiert Informationen über ein Feld auf dem Brett
+        // Visualisiert Informationen ï¿½ber ein Feld auf dem Brett
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
         int k = 0;
         foreach (GameObject go in squaresGO)
@@ -222,7 +240,7 @@ public class GameManager : MonoBehaviour
         // Deaktiviert Details Scrollbar
         details.SetActive(false);
 
-        // Deaktiviert die grafischen Informationen für ein Feld
+        // Deaktiviert die grafischen Informationen fï¿½r ein Feld
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
         foreach (GameObject go in squaresGO)
         {
@@ -230,20 +248,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Main Menu
-    public void MainMenu()
-    {
-        SceneManager.LoadScene(0);
-    }
-
-    // Visualisierung der möglichen Züge
+    /// <summary>
+    /// Die Methode <c>ActivateMoveVisualization</c> aktiviert die grafische 
+    /// Visualisierung aller verfÃ¼gbaren ZÃ¼ge fÃ¼r die ausgewÃ¤hlte Figur.
+    /// </summary>
     public void ActivateMoveVisualization(List<Move> moves)
     {
         possibleMoves = moves;
 
         foreach (Move move in moves)
         {
-            // Aktiviert die grafische Visualisierung der möglichen Felder
+            // Aktiviert die grafische Visualisierung der mï¿½glichen Felder
             int targetSquare = move.TargetSquare;
             GameObject targetSquareGO = BoardGeneration.instance.squaresGO
                 [Board.instance.ConvertIndex120To64(targetSquare)];
@@ -253,9 +268,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Die Methode <c>DeactivateMoveVisualization</c> deaktiviert die grafische 
+    /// Visualisierung aller verfÃ¼gbaren ZÃ¼ge fÃ¼r die losgelassene Figur.
+    /// </summary>
     public void DeactivateMoveVisualisation()
     {
-        // Deaktiviert die grafische Visualisierung der möglichen Felder
+        // Deaktiviert die grafische Visualisierung der mï¿½glichen Felder
         foreach (GameObject go in highlightedMoves)
         {
             go.transform.GetChild(2).gameObject.SetActive(false);
