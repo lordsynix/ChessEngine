@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using static MoveGenerator;
 
 /// <summary>
@@ -229,7 +230,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Possible Moves Visualization
+    // Main Menu
+    public void MainMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    // Visualisierung der möglichen Züge
     public void ActivateMoveVisualization(List<Move> moves)
     {
         possibleMoves = moves;
