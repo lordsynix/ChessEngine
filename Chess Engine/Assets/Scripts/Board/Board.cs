@@ -86,11 +86,11 @@ public class Board
     }
 
     /// <summary>
-    /// Die Methode <c>ResetBoard</c> setzt alle Brett-Variablen zurück auf ihre Default-Werte.
+    /// Die Methode <c>ResetBoard</c> setzt alle Brett-Variablen auf ihre Default-Werte zurück.
     /// </summary>
     public void ResetBoard()
     {
-        SetSquare(new int[64]);
+        SetSquare64(new int[64]);
         SetWhiteToMove(true);
         SetEnPassantSquare(-1);
     }

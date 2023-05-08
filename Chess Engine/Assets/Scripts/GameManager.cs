@@ -45,8 +45,7 @@ public class GameManager : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
-            _Debug();
+        if (Input.GetKeyDown(KeyCode.Escape)) MainMenu();
     }
 
     void _Debug()
@@ -139,6 +138,7 @@ public class GameManager : MonoBehaviour
         {
             ResetBoard();
             LoadFenPosition(fenInputField.text);
+            fenInputField.text = "";
         }
     }
 
