@@ -40,14 +40,14 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         int[] square120 = Board.instance.GetSquare120();
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
-        // Verhindert, dass ein leeres Feld ausgewählt werden kann
+        // Verhindert, dass ein leeres Feld ausgewï¿½hlt werden kann
         if (square120[slotNum] == 0) validData = false;
 
-        // Generiert alle Züge für die ausgewählte Figur
+        // Generiert alle Zï¿½ge fï¿½r die ausgewï¿½hlte Figur
         List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
         if (moves != null)
         {
-            // Überprüft, ob die Visualisierung für mögliche Felder bereits aktiv ist
+            // ï¿½berprï¿½ft, ob die Visualisierung fï¿½r mï¿½gliche Felder bereits aktiv ist
             GameManager.instance.DeactivateMoveVisualisation();
 
             GameManager.instance.ActivateMoveVisualization(moves);
@@ -56,8 +56,8 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // Stellt sicher, dass sich die ausgewählte Figur
-        // über den anderen UI-Elementen befindet
+        // Stellt sicher, dass sich die ausgewï¿½hlte Figur
+        // ï¿½ber den anderen UI-Elementen befindet
         canvasGroup.blocksRaycasts = false;
         myCanvas.sortingOrder += 1;
     }

@@ -173,7 +173,9 @@ public class GameManager : MonoBehaviour
         BoardGeneration.instance.ResetBoard();
     }
 
-    // Debug Mode
+    /// <summary>
+    /// Die Methode <c>Debug</c> startet den Debug Mode für Entwickler.
+    /// </summary>
     public void Debug()
     {
         if (!debugMode)
