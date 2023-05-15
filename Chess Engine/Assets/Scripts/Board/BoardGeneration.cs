@@ -47,8 +47,7 @@ public class BoardGeneration : MonoBehaviour
             for (int file = 0; file < 8; file++)
             {
                 bool isLightSquare = (rank + file) % 2 == 0;
-                Vector2 position = new Vector2(file * squareWidth + squareWidth / 2, 
-                                             -(rank * squareWidth + squareWidth / 2));
+                Vector2 position = new(file * squareWidth + squareWidth / 2, -(rank * squareWidth + squareWidth / 2));
 
                 GenerateSquare(position, isLightSquare);
             }

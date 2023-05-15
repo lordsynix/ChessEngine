@@ -21,14 +21,18 @@ public class MoveGenerator
     public static readonly int[] BlackPawnOffsets = { 10, 20, 11, 9 };
     public struct Move
     {
-        public readonly int StartSquare;
-        public readonly int TargetSquare;
+        public int StartSquare { get; set; }
+        public int TargetSquare { get; set; }
+        public bool Capture;
+        public int Promotion;
 
         // Constructor für einen Zug
-        public Move(int startSquare, int targetSquare)
+        public Move(int startSquare, int targetSquare, bool capture = false, int promotion = -1)
         {
             StartSquare = startSquare;
             TargetSquare = targetSquare;
+            Capture = capture;
+            Promotion = promotion;
         }
     }
 
@@ -63,7 +67,7 @@ public class MoveGenerator
         } 
         else if (Piece.IsKnight(piece))
         {
-            GenerateKnightMoves(startSquare);
+            GenerateKnightMoves(startSquare, piece);
         } 
         else if (Piece.IsPawn(piece))
         {
@@ -71,7 +75,7 @@ public class MoveGenerator
         } 
         else if (Piece.IsKing(piece))
         {
-            GenerateKingMoves(startSquare);
+            GenerateKingMoves(startSquare, piece);
         }
 
         return moves;
@@ -89,20 +93,20 @@ public class MoveGenerator
                 int targetSquare = startSquare + DirectionOffsets[dirIndex] * (n + 1);
                 int pieceOnTargetSquare = square120[targetSquare];
 
-                if (!LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare))
+                if (!LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece))
                     break;
             }
         }
     }
 
-    void GenerateKnightMoves(int startSquare)
+    void GenerateKnightMoves(int startSquare, int piece)
     {
         for (int dirIndex = 0; dirIndex < 8; dirIndex++)
         {
             int targetSquare = startSquare + KnightOffsets[dirIndex];
             int pieceOnTargetSquare = square120[targetSquare];
 
-            LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+            LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
         }
     }
 
@@ -110,50 +114,48 @@ public class MoveGenerator
     {
         for (int dirIndex = 0; dirIndex < 4; dirIndex++)
         {
-            int offset = Piece.IsColor(piece, Piece.WHITE) ? WhitePawnOffsets[dirIndex] : BlackPawnOffsets[dirIndex];
+            int offset = Piece.IsColor(friendlyColor, Piece.WHITE) ? WhitePawnOffsets[dirIndex] : BlackPawnOffsets[dirIndex];
             int targetSquare = startSquare + offset;
             int pieceOnTargetSquare = square120[targetSquare];
 
             // Normaler Bauernzug
             if (dirIndex == 0)
             {
-                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, true);
+                LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
             }
 
             // Bauernzug für 2 Feldern
             else if (dirIndex == 1)
             {
-                if (Piece.IsColor(piece, Piece.WHITE))
+                if (Piece.IsColor(friendlyColor, Piece.WHITE))
                 {
-                    if (startSquare >= 81 && startSquare <= 88)
-                    {
-                        LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
-                    }
+                    if (startSquare >= 81 && startSquare <= 88) 
+                        LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
                 }
                 else
                 {
                     if (startSquare >= 31 && startSquare <= 38)
-                        LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+                        LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
                 }
             }
 
             // Züge nur möglich, wenn diagonal geschlagen wird
-            else CanCapture(pieceOnTargetSquare, startSquare, targetSquare);
+            else CanCapture(pieceOnTargetSquare, startSquare, targetSquare, piece);
         }
     }
 
-    void GenerateKingMoves(int startSquare)
+    void GenerateKingMoves(int startSquare, int piece)
     {
         for (int dirOffset = 0; dirOffset < 8; dirOffset++)
         {
             int targetSquare = startSquare + DirectionOffsets[dirOffset];
             int pieceOnTargetSquare = square120[targetSquare];
 
-            LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare);
+            LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
         }
     }
 
-    bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare, bool pawn = false)
+    bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare, int piece)
     {
         // Spielfeldrand erreicht
         if (pieceOnTargetSquare == -1)
@@ -169,31 +171,43 @@ public class MoveGenerator
             return false;
         }
 
-        moves.Add(new Move(startSquare, targetSquare));
-        //Debug.Log("Added a move from " + startSquare + " to " + targetSquare);
-        
-        // Blockiert von gegnerischen Figur
-        if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
+        if (!CanCapture(pieceOnTargetSquare, startSquare, targetSquare, piece))
+            moves.Add(new Move(startSquare, targetSquare, false, CanPromote(targetSquare, piece)));
+        else
         {
-            // Stellt sicher, dass ein Bauer nicht nach vorne schlagen kann
-            if (pawn) moves.RemoveAt(moves.Count - 1);
-
-            //Debug.Log("Skipped direction because of an enemy piece at " + targetSquare);
+            if (Piece.IsPawn(piece)) moves.RemoveAt(moves.Count - 1);
             return false;
         }
 
         return true;
     }
 
-    bool CanCapture (int pieceOnTargetSquare, int startSquare, int targetSquare)
+    bool CanCapture (int pieceOnTargetSquare, int startSquare, int targetSquare, int piece)
     {
-        // Zug nur möglich, falls eine gegnerische Figur geschlagen werden kann
+        // Blockiert von gegnerischen Figur
         if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
         {
-            moves.Add(new Move(startSquare, targetSquare));
+            moves.Add(new Move(startSquare, targetSquare, true, CanPromote(targetSquare, piece)));
             return true;
         }
 
         return false;
+    }
+
+    int CanPromote(int targetSquare, int piece)
+    {
+        if (!Piece.IsPawn(piece)) return -1;
+
+        if (Piece.IsColor(friendlyColor, Piece.WHITE))
+        {
+            if (targetSquare >= 21 && targetSquare <= 28)
+                return 0;
+        }
+        else
+        {
+            if (targetSquare >= 91 && targetSquare <= 98)
+                return 0;
+        }
+        return -1;
     }
 }

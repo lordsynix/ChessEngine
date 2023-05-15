@@ -13,7 +13,6 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     public MoveGenerator moveGenerator = new();
 
     public bool foundSquare = false;
-    public bool validData = true;
 
     private GameObject canvas;
 
@@ -40,16 +39,12 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         int[] square120 = Board.instance.GetSquare120();
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
-        // Verhindert, dass ein leeres Feld ausgew�hlt werden kann
-        if (square120[slotNum] == 0) validData = false;
-
         // Generiert alle Z�ge f�r die ausgew�hlte Figur
         List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
         if (moves != null)
         {
-            // �berpr�ft, ob die Visualisierung f�r m�gliche Felder bereits aktiv ist
+            // Aktiviert die Visualisierung aller möglichen Züge
             GameManager.instance.DeactivateMoveVisualisation();
-
             GameManager.instance.ActivateMoveVisualization(moves);
         }
     }
@@ -66,9 +61,18 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     {
         canvasGroup.blocksRaycasts = true;
         myCanvas.sortingOrder -= 1;
-        if (!foundSquare) rectTransform.anchoredPosition = startPosition;
 
+        if (!foundSquare) ExitDragDrop();
+
+        // Zurücksetzten der Variablen
         GameManager.instance.DeactivateMoveVisualisation();
+        foundSquare = false;
+    }
+
+    void ExitDragDrop()
+    {
+        rectTransform.anchoredPosition = startPosition;
+        rectTransform.SetPositionAndRotation(transform.parent.position, Quaternion.identity);
     }
 
     public void OnDrag(PointerEventData eventData)

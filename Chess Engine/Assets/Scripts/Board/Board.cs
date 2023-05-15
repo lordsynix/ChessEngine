@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static MoveGenerator;
 
 /// <summary>
 /// Die Klasse <c>Board</c> ist f�r die interne Brettdarstellung des Spielfelds zust�ndig. 
@@ -85,29 +86,9 @@ public class Board
         EnPassantSquare = e;
     }
 
-    /// <summary>
-    /// Die Methode <c>ResetBoard</c> setzt alle Brett-Variablen auf ihre Default-Werte zurück.
-    /// </summary>
-    public void ResetBoard()
-    {
-        SetSquare64(new int[64]);
-        SetWhiteToMove(true);
-        SetEnPassantSquare(-1);
-    }
-
     #endregion
 
-    /// <summary>
-    /// Die Methode <c>Initialize</c> wird ausgef�hrt, 
-    /// wenn eine neue Instanz der Klasse geschaffen wird.
-    /// </summary>
-    public void Initialize()
-    {
-        instance = this;
-
-        Square64 = new int[64];
-        Square120 = new int[120];
-    }
+    #region BRETTDARSTELLUNG
 
     /// <summary>
     /// Die Methode <c>Get120From64</c> ver�ndert, ausgehend von der 8x8-Darstellung 
@@ -200,4 +181,36 @@ public class Board
         return rank * 8 + file;
     }
 
+    #endregion
+
+    /// <summary>
+    /// Die Methode <c>Initialize</c> wird ausgef�hrt, 
+    /// wenn eine neue Instanz der Klasse geschaffen wird.
+    /// </summary>
+    public void Initialize()
+    {
+        instance = this;
+
+        Square64 = new int[64];
+        Square120 = new int[120];
+    }
+
+    /// <summary>
+    /// Die Methode <c>ResetBoard</c> setzt alle Brett-Variablen auf ihre Default-Werte zurück.
+    /// </summary>
+    public void ResetBoard()
+    {
+        SetSquare64(new int[64]);
+        SetWhiteToMove(true);
+        SetEnPassantSquare(-1);
+    }
+
+    public void MakeMove(Move move)
+    {
+        if (move.Promotion == -1) Square120[move.TargetSquare] = Square120[move.StartSquare];
+        else Square120[move.TargetSquare] = move.Promotion;
+        Square120[move.StartSquare] = 0;
+
+        WhiteToMove = !WhiteToMove;
+    }
 }

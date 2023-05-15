@@ -91,7 +91,7 @@ public static class Piece
         }
         else if (pieceColor == BLACK)
         {
-            if (piece > BLACK)
+            if (piece >= BLACK)
                 return true;
             else return false;
         }

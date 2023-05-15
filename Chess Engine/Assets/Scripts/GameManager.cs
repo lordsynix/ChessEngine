@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,19 +18,35 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
     public Board board = new();
 
-    [Header("Debug Tools")]
+    [Header("Windows")]
     public GameObject details;
+    public GameObject promotion;
+    public GameObject boardContainer;
+
+    [Header("Debug Tools")]
     public GameObject squareInformationPrefab;
     public GameObject squareInformationHolder;
     public InputField fenInputField;
     public Text sideToMove;
-    public bool debugMode = false;
+    
+    [HideInInspector] public bool debugMode = false;
     
     [HideInInspector] public int[] square64 = null;
     [HideInInspector] public int[] square120 = null;
 
     [HideInInspector] public List<GameObject> highlightedMoves;
-    public List<Move> possibleMoves;
+    [HideInInspector] public List<Move> possibleMoves;
+
+    private Move curMove;
+    private Dictionary<char, int> pieceTypeFromSymbol = new()
+    {
+        ['k'] = Piece.KING,
+        ['p'] = Piece.PAWN,
+        ['n'] = Piece.KNIGHT,
+        ['b'] = Piece.BISHOP,
+        ['r'] = Piece.ROOK,
+        ['q'] = Piece.QUEEN
+    };
 
     private void Awake()
     {
@@ -48,32 +65,11 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape)) MainMenu();
     }
 
-    void _Debug()
-    {
-        square64 = board.GetSquare64();
-        int i = 0;
-        foreach (int sq in square64)
-        {
-            UnityEngine.Debug.Log(i + " : " + sq);
-            i++;
-        }
-    }
-
     // FEN String
     public void LoadFenPosition(string fen)
     {
         try
         {
-            var pieceTypeFromSymbol = new Dictionary<char, int>()
-            {
-                ['k'] = Piece.KING,
-                ['p'] = Piece.PAWN,
-                ['n'] = Piece.KNIGHT,
-                ['b'] = Piece.BISHOP,
-                ['r'] = Piece.ROOK,
-                ['q'] = Piece.QUEEN
-            };
-
             string fenBoard = fen.Split(' ')[0];
             string fenToMove = fen.Split(' ')[1];
             int file = 0, rank = 0;
@@ -282,5 +278,39 @@ public class GameManager : MonoBehaviour
             go.transform.GetChild(2).gameObject.SetActive(false);
         }
         highlightedMoves = new List<GameObject>();
+    }
+
+    public void ActivatePromotionVisuals(Move move)
+    {
+        bool whiteToMove = board.GetWhiteToMove();
+
+        promotion.SetActive(true);
+         
+        if (whiteToMove) promotion.transform.GetChild(1).gameObject.SetActive(true);
+        else promotion.transform.GetChild(2).gameObject.SetActive(true);
+
+        curMove = move;
+    }
+
+    public void PromotionPiece(string strPiece)
+    {
+        promotion.transform.GetChild(1).gameObject.SetActive(false);
+        promotion.transform.GetChild(2).gameObject.SetActive(false);
+        promotion.SetActive(false);
+
+        char symbol = strPiece.ToCharArray()[0];
+
+        int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
+        int pieceColor = char.IsUpper(symbol) ? Piece.WHITE : Piece.BLACK;
+
+        curMove.Promotion = pieceColor | pieceType;
+
+        SquareSlot sqSlot = boardContainer.transform.GetChild(board.ConvertIndex120To64(curMove.TargetSquare))
+                            .GetComponentInChildren<SquareSlot>();
+
+        sqSlot.Move(sqSlot.curPromotionPointerDrag, curMove);
+
+        // TODO Close Promotion Window when player played an other move
+        // TODO Add all posible Promotion moves to possible moves array
     }
 }
