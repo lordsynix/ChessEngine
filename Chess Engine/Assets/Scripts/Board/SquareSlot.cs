@@ -53,6 +53,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
     public void Move(GameObject pointerDrag, Move move)
     {
+        GameManager.instance.DeactivatePromotionVisuals();
+
         // Setzt den Positionsursprung der Figur auf das neue Feld
         pointerDrag.GetComponent<DragDrop>().foundSquare = true;
         pointerDrag.GetComponent<RectTransform>().anchoredPosition =
@@ -67,9 +69,22 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         pointerDrag.GetComponentInChildren<Image>().sprite = null;
         pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
 
+        // Löscht den Bauer, der mit EnPssant geschlagen wurde
+        if (move.Capture == 2)
+        {
+            int enPasSq = Board.instance.ConvertIndex120To64(Board.instance.GetEnPassantSquare());
+            enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 8 : -8;
+
+            GameObject go = BoardGeneration.instance.squaresGO[enPasSq].transform.GetChild(0).gameObject;
+            go.GetComponent<Image>().sprite = null;
+            go.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
+
+            FindObjectOfType<AudioManager>().Play("move_enpassant");
+        }
+
         // SFX
-        if (!move.Capture) FindObjectOfType<AudioManager>().Play("move_normal");
-        else FindObjectOfType<AudioManager>().Play("move_capture");
+        if (move.Capture == 0) FindObjectOfType<AudioManager>().Play("move_normal");
+        else if (move.Capture == 1) FindObjectOfType<AudioManager>().Play("move_capture");
 
         // Aktualisiert die Brett-Variablen
         Board.instance.MakeMove(move);

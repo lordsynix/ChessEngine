@@ -23,9 +23,9 @@
 
 3) Follow the steps shown
 
-4) Download the project Chess Engine
+4) Download the project "Chess Engine"
 
-5) Enter the password §Access4Members
+5) Enter the following password: §Access4Members
 
 
 

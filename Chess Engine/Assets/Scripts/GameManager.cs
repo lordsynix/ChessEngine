@@ -102,12 +102,9 @@ public class GameManager : MonoBehaviour
             BoardGeneration.instance.GeneratePieces(square64);
 
             // Definiert den Spieler, welcher als nächstes Spielen darf.
-            if (fenToMove == "w")
-                board.SetWhiteToMove(true);
-            else if (fenToMove == "b")
-                board.SetWhiteToMove(false);
-            else
-                UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
+            if (fenToMove == "w") board.SetWhiteToMove(true);
+            else if (fenToMove == "b") board.SetWhiteToMove(false);
+            else UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
         }
         catch
         {
@@ -144,10 +141,8 @@ public class GameManager : MonoBehaviour
     public void DebugButton()
     {
         debugMode = !debugMode;
-        if (debugMode)
-            Debug();
-        else
-            ExitDebug();
+        if (debugMode) Debug();
+        else ExitDebug();
     }
     
     /// <summary>
@@ -174,8 +169,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void Debug()
     {
-        if (!debugMode)
-            return;
+        if (!debugMode) return;
                 
         square64 = board.Square64From120();
         
@@ -280,6 +274,11 @@ public class GameManager : MonoBehaviour
         highlightedMoves = new List<GameObject>();
     }
 
+    /// <summary>
+    /// Öffnet ein Menü, im dem die Figur ausgewählt werden kann, 
+    /// in die sich der Bauer in der letzten Reihe verwandelt.
+    /// </summary>
+    /// <param name="move">Den Zug, bei dem sich der Bauer verwandelt.</param>
     public void ActivatePromotionVisuals(Move move)
     {
         bool whiteToMove = board.GetWhiteToMove();
@@ -290,6 +289,14 @@ public class GameManager : MonoBehaviour
         else promotion.transform.GetChild(2).gameObject.SetActive(true);
 
         curMove = move;
+    }
+
+    public void DeactivatePromotionVisuals()
+    {
+        promotion.transform.GetChild(1).gameObject.SetActive(false);
+        promotion.transform.GetChild(2).gameObject.SetActive(false);
+
+        promotion.SetActive(false);
     }
 
     public void PromotionPiece(string strPiece)
@@ -309,8 +316,5 @@ public class GameManager : MonoBehaviour
                             .GetComponentInChildren<SquareSlot>();
 
         sqSlot.Move(sqSlot.curPromotionPointerDrag, curMove);
-
-        // TODO Close Promotion Window when player played an other move
-        // TODO Add all posible Promotion moves to possible moves array
     }
 }

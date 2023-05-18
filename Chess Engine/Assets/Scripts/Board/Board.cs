@@ -207,10 +207,24 @@ public class Board
 
     public void MakeMove(Move move)
     {
-        if (move.Promotion == -1) Square120[move.TargetSquare] = Square120[move.StartSquare];
-        else Square120[move.TargetSquare] = move.Promotion;
+        // Target Square
+        Square120[move.TargetSquare] = (move.Promotion == -1) ? Square120[move.StartSquare] : move.Promotion;
+
+        // Start Square
         Square120[move.StartSquare] = 0;
 
+        // En Passant Capture
+        if (move.Capture == 2)
+        {
+            int enPasSq = EnPassantSquare;
+            enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
+            Square120[enPasSq] = 0;
+        }
+
+        // En Passant Square
+        EnPassantSquare = move.EnPassant;
+
+        // Player to move
         WhiteToMove = !WhiteToMove;
     }
 }

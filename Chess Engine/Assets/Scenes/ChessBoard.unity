@@ -3363,6 +3363,12 @@ MonoBehaviour:
     pitch: 1
     loop: 0
     source: {fileID: 0}
+  - name: move_enpassant
+    clip: {fileID: 8300000, guid: 72f1f2211cebe7b4cb4369b66a219a40, type: 3}
+    volume: 0.4
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
 --- !u!1 &1593241017
 GameObject:
   m_ObjectHideFlags: 0
