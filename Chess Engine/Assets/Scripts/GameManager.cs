@@ -122,7 +122,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnGeneratePosition()
     {
-        if (fenInputField.text == "")
+        if (fenInputField.text == "") // TODO: wenn das fenInputField null ist, wird hier eine exception geworfen werden.
+        // es waere vielleicht sinnvoller, das if von zeile 131 vor diesem if einzufuegen...?
         {
             UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
             return;
@@ -140,8 +141,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void DebugButton()
     {
-        debugMode = !debugMode;
-        if (debugMode) Debug();
+        debugMode = !debugMode; // TODO: ich wuerde hier einen kommentar einfuegen warum du das so machst
+        if (debugMode) Debug(); // ich finde den code lesbarer, wenn ein if auf 2 zeilen verteilt wird, auch wenn danach nur eine zeile folgt
         else ExitDebug();
     }
     
