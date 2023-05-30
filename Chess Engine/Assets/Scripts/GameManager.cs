@@ -12,8 +12,8 @@ using static MoveGenerator;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
-    // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b";
+    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq";
+    // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
 
     public static GameManager instance;
     public Board board = new();
@@ -72,6 +72,7 @@ public class GameManager : MonoBehaviour
         {
             string fenBoard = fen.Split(' ')[0];
             string fenToMove = fen.Split(' ')[1];
+            string fenCastle = fen.Split(' ')[2];
             int file = 0, rank = 0;
             square64 = new int[64];
 
@@ -91,7 +92,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        int pieceColor = (char.IsUpper(symbol)) ? Piece.WHITE : Piece.BLACK;
+                        int pieceColor = char.IsUpper(symbol) ? Piece.WHITE : Piece.BLACK;
                         int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
                         square64[rank * 8 + file] = pieceColor | pieceType;
                         file++;
@@ -105,11 +106,15 @@ public class GameManager : MonoBehaviour
             if (fenToMove == "w") board.SetWhiteToMove(true);
             else if (fenToMove == "b") board.SetWhiteToMove(false);
             else UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
+
+            // Verarbeitet die Rochaderechte der Position.
+            board.SetCastlePermissions(fenCastle);
         }
         catch
         {
             // TODO Send Exception
             fenInputField.text = "Invalid position";
+            Error.instance.OnError();
             LoadFenPosition(startFEN);
         }
     }
@@ -171,7 +176,8 @@ public class GameManager : MonoBehaviour
     {
         if (!debugMode) return;
                 
-        square64 = board.Square64From120();
+        square64 = board.GetSquare64From120();
+        board.DebugPieceLocation();
         
         // L�scht die alten Zeilen mit Informationen zu einem Feld
         for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
@@ -222,8 +228,16 @@ public class GameManager : MonoBehaviour
             Text[] texts = go.transform.GetChild(1).GetComponentsInChildren<Text>();
             texts[0].text = k.ToString();
             texts[1].text = square64[k].ToString();
+            texts[2].text = board.ConvertIndex64To120(k).ToString();
             go.transform.GetChild(1).gameObject.SetActive(true);
             k++;
+        }
+
+        bool[] permissions = board.GetCastlePermissions();
+        UnityEngine.Debug.Log("-------- Castle Permissions --------");
+        foreach (bool b in permissions)
+        {
+            UnityEngine.Debug.Log(b);
         }
     }
 

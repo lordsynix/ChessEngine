@@ -21,6 +21,7 @@ public static class Piece
     public const int WHITE = 8;
     public const int BLACK = 16;
 
+
     /// <summary>
     /// Die Funktion <c>IsType</c> überprüft, ob eine übergebene 
     /// Figur mit einer ausgewählten Figurenart übereinstimmt.
@@ -168,5 +169,37 @@ public static class Piece
             return true;
 
         return false;
+    }
+
+    public static List<int[]> GeneratePiecesList()
+    {
+        List<int[]> piecesList = new()
+        {
+            new int[0],  // 0  - UNDEFINED
+            new int[0],  // 1  - UNDEFINED
+            new int[0],  // 2  - UNDEFINED
+            new int[0],  // 3  - UNDEFINED
+            new int[0],  // 4  - UNDEFINED
+            new int[0],  // 5  - UNDEFINED
+            new int[0],  // 6  - UNDEFINED
+            new int[0],  // 7  - UNDEFINED
+            new int[0],  // 8  - NONE
+            new int[1],  // 9  - WHITE KING
+            new int[8],  // 10 - WHITE PAWN
+            new int[10], // 11 - WHITE KNIGHT
+            new int[10], // 12 - WHITE BISHOP
+            new int[10], // 13 - WHITE ROOK
+            new int[9],  // 14 - WHITE QUEEN
+            new int[0],  // 15 - UNDEFINED
+            new int[0],  // 16 - NONE
+            new int[1],  // 17 - BLACK KING
+            new int[8],  // 18 - BLACK PAWN
+            new int[10], // 19 - BLACK KNIGHT
+            new int[10], // 20 - BLACK BISHOP
+            new int[10], // 21 - BLACK ROOK
+            new int[9]   // 22 - BLACK QUEEN
+        };
+
+        return piecesList;
     }
 }

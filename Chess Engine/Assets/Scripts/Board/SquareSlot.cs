@@ -15,8 +15,6 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 {
     [SerializeField] public GameObject curPromotionPointerDrag = null;
 
-    private int[] square120;
-    private Board board;
     private Image slot;
     private int oldSlotNum;
     private int slotNum;

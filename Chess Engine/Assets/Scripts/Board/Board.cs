@@ -18,6 +18,13 @@ public class Board
     public static bool WhiteToMove = true;
     public static int EnPassantSquare = -1;
 
+    public static bool WhiteCastleKingside = false;
+    public static bool WhiteCastleQueenside = false;
+    public static bool BlackCastleKingside = false;
+    public static bool BlackCastleQueenside = false;
+
+    public List<int[]> piecesList = new();
+
     #region SETTER AND GETTER
 
     /// <summary>
@@ -38,7 +45,8 @@ public class Board
             return;
         }
         Square64 = s;
-        Get120From64();
+        Square120 = GetSquare120From64();
+        GetPieceLocation();
     }
 
     /// <summary>
@@ -59,7 +67,7 @@ public class Board
             return;
         }
         Square120 = s;
-        Get64From120();
+        Square64 = GetSquare64From120();
     }
 
     /// <summary>
@@ -86,15 +94,48 @@ public class Board
         EnPassantSquare = e;
     }
 
+    public bool[] GetCastlePermissions()
+    {
+        return new bool[]
+        {
+            WhiteCastleKingside,
+            WhiteCastleQueenside,
+            BlackCastleKingside,
+            BlackCastleQueenside
+        };
+    }
+
+    public void SetCastlePermissions(string s)
+    {
+        WhiteCastleKingside = false; WhiteCastleQueenside = false;
+        BlackCastleKingside = false; BlackCastleQueenside = false;
+        
+        foreach (char symbol in s)
+        {
+            if (char.ToLower(symbol) == 'k')
+            {
+                if (char.IsUpper(symbol)) WhiteCastleKingside = true;
+                else BlackCastleKingside = true;
+            }
+            else if (char.ToLower(symbol) == 'q')
+            {
+                if (char.IsUpper(symbol)) WhiteCastleQueenside = true;
+                else BlackCastleQueenside = true;
+            }
+            else Error.instance.OnError();
+        }
+    }
+
     #endregion
 
     #region BRETTDARSTELLUNG
 
     /// <summary>
-    /// Die Methode <c>Get120From64</c> ver�ndert, ausgehend von der 8x8-Darstellung 
+    /// Die Methode <c>GetSquare120From64</c> ver�ndert, ausgehend von der 8x8-Darstellung 
     /// die Werte f�r die 12x10-Darstellung.
     /// </summary>
-    public void Get120From64()
+    /// <returns>Gibt den entsprechenden Square120 Array zurück.</returns>
+    public int[] GetSquare120From64()
     {
         Square120 = new int[120];
 
@@ -117,29 +158,16 @@ public class Board
             Square120[j] = Square64[i];
             j++;
         }
+
+        return Square120;
     }
 
     /// <summary>
-    /// Die Methode <c>Get64From120</c> ver�ndert, ausgehend von der 12x10-Darstellung 
+    /// Die Methode <c>GetSquare64From120</c> ver�ndert, ausgehend von der 12x10-Darstellung 
     /// die Werte f�r die 8x8-Darstellung.
     /// </summary>
-    public void Get64From120()
-    {
-        Square64 = new int[64];
-
-        int curSq = 0;
-
-        foreach (int sq in Square120)
-        {
-            if (sq != -1)
-            {
-                Square64[curSq] = sq;
-                curSq++;
-            }
-        }
-    }
-
-    public int[] Square64From120()
+    /// <returns>Gibt den entsprechenden Square64 Array zurück.</returns>
+    public int[] GetSquare64From120()
     {
         
         Square64 = new int[64];
@@ -181,6 +209,45 @@ public class Board
         return rank * 8 + file;
     }
 
+    /// <summary>
+    /// Die Methode <c>GetPieceLocation</c> speichert, ausgehend von der 8x8-Darstellung
+    /// die Position für alle Figuren auf dem Brett in Form eines int-Wertes.
+    /// </summary>
+    public void GetPieceLocation()
+    {
+        piecesList = Piece.GeneratePiecesList();
+
+        for (int sq = 0; sq < Square64.Length; sq++)
+        {
+            int value = Square64[sq];
+            if (value == Piece.NONE) continue;
+
+            for (int i = 0; i < piecesList[value].Length; i++)
+            {
+                if (piecesList[value][i] == 0)
+                {
+                    piecesList[value][i] = ConvertIndex64To120(sq);
+                    break;
+                }
+            }
+
+        }
+    }
+
+    public void DebugPieceLocation()
+    {
+        for (int i = 0; i < piecesList.Count; i++)
+        {
+            int[] array = piecesList[i];
+            Debug.Log("-------- Piece " + i + " --------");
+            for (int k = 0; k < array.Length; k++)
+            {
+                if (array[k] == 0) continue;
+                Debug.Log(k + " value: " + array[k]);
+            }
+        }
+    }
+
     #endregion
 
     /// <summary>
@@ -207,6 +274,34 @@ public class Board
 
     public void MakeMove(Move move)
     {
+        // Update piece position
+        int piece = Square120[move.StartSquare];
+        int position = Array.IndexOf(piecesList[piece], move.StartSquare);
+        piecesList[piece][position] = move.TargetSquare;
+
+        if (move.Capture == 1)
+        {
+            int enemyPiece = Square120[move.TargetSquare];
+            int enemyPosition = Array.IndexOf(piecesList[enemyPiece], move.TargetSquare);
+            piecesList[enemyPiece][enemyPosition] = 0;
+        }
+
+        if (move.Promotion != -1)
+        {
+            // Setzt die Position des umwandelnden Bauern zurück.
+            piecesList[piece][position] = 0;
+
+            // Setzt die Position für die umwandelte Figur.
+            for (int i = 0; i < piecesList[move.Promotion].Length; i++)
+            {
+                if (piecesList[move.Promotion][i] == 0)
+                {
+                    piecesList[move.Promotion][i] = move.TargetSquare;
+                    break;
+                }
+            }
+        }
+
         // Target Square
         Square120[move.TargetSquare] = (move.Promotion == -1) ? Square120[move.StartSquare] : move.Promotion;
 
@@ -218,6 +313,11 @@ public class Board
         {
             int enPasSq = EnPassantSquare;
             enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
+
+            // Update captured pawn position
+            int pos = Array.IndexOf(piecesList[Square120[enPasSq]], enPasSq);
+            piecesList[Square120[enPasSq]][pos] = 0;
+
             Square120[enPasSq] = 0;
         }
 
