@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Die Klasse <c>Piece</c> beinhaltet die int-Konstanten fuer alle Schachfiguren
-/// sowie wichtige ueberpruefungsmethoden fuer Figur und Farbe.
+/// sowie wichtige Ueberpruefungsmethoden fuer Figur und Farbe.
 /// Ein Figurenwert setzt sich als Binaeraddition zwischen Farbe und Typ zusammen.
 /// </summary>
 public static class Piece
@@ -23,12 +23,12 @@ public static class Piece
 
     /// <summary>
     /// Die Funktion <c>IsType</c> ueberprueft, ob eine uebergebene
-    /// Figur mit einer ausgewaelten Figurenart uebereinstimmt.
+    /// Figur mit einer ausgewaehlten Figurenart uebereinstimmt.
     /// </summary>
     /// <param name="piece">Die zu ueberpruefende Figur.</param>
     /// <param name="pieceType">Die Figurenart, auf die Figur ueberprueft werden soll.</param>
     /// <returns>Gibt zurueck, ob die uebergebene Figur mit
-    /// der ausgewaelten Figurenart uebereinstimmt.</returns>
+    /// der ausgewaehlten Figurenart uebereinstimmt.</returns>
     public static bool IsType(int piece, int pieceType)
     {
         switch (pieceType)
@@ -75,12 +75,12 @@ public static class Piece
 
     /// <summary>
     /// Die Funktion <c>IsColor</c> ueberprueft, ob eine uebergebene
-    /// Figur einer ausgewaelten Figurenfarbe angehoert.
+    /// Figur einer ausgewaehlten Figurenfarbe angehoert.
     /// </summary>
     /// <param name="piece">Die zu ueberpruefende Figur.</param>
     /// <param name="pieceColor">Die Firgurenfarbe, auf die Figur ueberprueft werden soll.</param>
     /// <returns>Gibt zurueck, ob die uebergebene Figur mit
-    /// der ausgewaelten Figurenfarbe uebereinstimmt.</returns>
+    /// der ausgewaehlten Figurenfarbe uebereinstimmt.</returns>
     public static bool IsColor(int piece, int pieceColor)
     {
         if (pieceColor == WHITE)

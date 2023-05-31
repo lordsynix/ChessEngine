@@ -12,7 +12,7 @@ using static MoveGenerator;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"; // TODO: was ist die bedeutung dieses strings?
     // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b";
 
     public static GameManager instance;
@@ -158,7 +158,7 @@ public class GameManager : MonoBehaviour
     
     void ResetBoard()
     {
-        // Brett-Variablen zuruecksetzten
+        // Brett-Variablen zuruecksetzen
         board.ResetBoard();
 
         // Setzt die grafische Repraesentierung der Figuren zurueck.
@@ -251,7 +251,7 @@ public class GameManager : MonoBehaviour
 
         foreach (Move move in moves)
         {
-            // Aktiviert die grafische Visualisierung der mmoeglichen Felder
+            // Aktiviert die grafische Visualisierung der moeglichen Felder
             int targetSquare = move.TargetSquare;
             GameObject targetSquareGO = BoardGeneration.instance.squaresGO
                 [Board.instance.ConvertIndex120To64(targetSquare)];
@@ -267,7 +267,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void DeactivateMoveVisualisation()
     {
-        // Deaktiviert die grafische Visualisierung der mmoeglichen Felder
+        // Deaktiviert die grafische Visualisierung der moeglichen Felder
         foreach (GameObject go in highlightedMoves)
         {
             go.transform.GetChild(2).gameObject.SetActive(false);

@@ -35,7 +35,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
             Move curMove = new(oldSlotNum, slotNum);
 
-            // ueberprueft, ob der eingegebene Zug mmoeglich ist (Normaler- sowie Schlagzug)
+            // ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
             if (!GameManager.instance.possibleMoves.Any(
                 m => m.StartSquare == curMove.StartSquare && m.TargetSquare == curMove.TargetSquare)) return;
 
