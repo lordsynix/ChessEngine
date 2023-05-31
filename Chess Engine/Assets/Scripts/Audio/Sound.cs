@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-// Skript für alle Audioquellen
+// Skript fuer alle Audioquellen
 [System.Serializable]
 public class Sound
 {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Die Klasse <c>Piece</c> beinhaltet die int-Konstanten für alle Schachfiguren
-/// sowie wichtige Überprüfungsmethoden für Figur und Farbe.
-/// Ein Figurenwert setzt sich als Binäraddition zwischen Farbe und Typ zusammen.
+/// Die Klasse <c>Piece</c> beinhaltet die int-Konstanten fuer alle Schachfiguren
+/// sowie wichtige ueberpruefungsmethoden fuer Figur und Farbe.
+/// Ein Figurenwert setzt sich als Binaeraddition zwischen Farbe und Typ zusammen.
 /// </summary>
 public static class Piece
 {
@@ -22,13 +22,13 @@ public static class Piece
     public const int BLACK = 16;
 
     /// <summary>
-    /// Die Funktion <c>IsType</c> überprüft, ob eine übergebene 
-    /// Figur mit einer ausgewählten Figurenart übereinstimmt.
+    /// Die Funktion <c>IsType</c> ueberprueft, ob eine uebergebene
+    /// Figur mit einer ausgewaelten Figurenart uebereinstimmt.
     /// </summary>
-    /// <param name="piece">Die zu überprüfende Figur.</param>
-    /// <param name="pieceType">Die Figurenart, auf die Figur überprüft werden soll.</param>
-    /// <returns>Gibt zurück, ob die übergebene Figur mit 
-    /// der ausgewählten Figurenart übereinstimmt.</returns>
+    /// <param name="piece">Die zu ueberpruefende Figur.</param>
+    /// <param name="pieceType">Die Figurenart, auf die Figur ueberprueft werden soll.</param>
+    /// <returns>Gibt zurueck, ob die uebergebene Figur mit
+    /// der ausgewaelten Figurenart uebereinstimmt.</returns>
     public static bool IsType(int piece, int pieceType)
     {
         switch (pieceType)
@@ -74,13 +74,13 @@ public static class Piece
     }
 
     /// <summary>
-    /// Die Funktion <c>IsColor</c> überprüft, ob eine übergebene 
-    /// Figur einer ausgewählten Figurenfarbe angehört.
+    /// Die Funktion <c>IsColor</c> ueberprueft, ob eine uebergebene
+    /// Figur einer ausgewaelten Figurenfarbe angehoert.
     /// </summary>
-    /// <param name="piece">Die zu überprüfende Figur.</param>
-    /// <param name="pieceColor">Die Firgurenfarbe, auf die Figur überprüft werden soll.</param>
-    /// <returns>Gibt zurück, ob die übergebene Figur mit 
-    /// der ausgewählten Figurenfarbe übereinstimmt.</returns>
+    /// <param name="piece">Die zu ueberpruefende Figur.</param>
+    /// <param name="pieceColor">Die Firgurenfarbe, auf die Figur ueberprueft werden soll.</param>
+    /// <returns>Gibt zurueck, ob die uebergebene Figur mit
+    /// der ausgewaelten Figurenfarbe uebereinstimmt.</returns>
     public static bool IsColor(int piece, int pieceColor)
     {
         if (pieceColor == WHITE)
@@ -103,14 +103,14 @@ public static class Piece
     }
 
     /// <summary>
-    /// Die Funktion <c>IsSlidingPiece</c> überprüft, ob 
-    /// sich eine Figur schräg über das Brett bewegen kann.
+    /// Die Funktion <c>IsSlidingPiece</c> ueberprueft, ob
+    /// sich eine Figur schraeg ueber das Brett bewegen kann.
     /// </summary>
-    /// <param name="piece">Die zu überprüfende Figur</param>
-    /// <returns>Gibt zurück, ob die Funktion auf die übergebene Figur zutrifft</returns>
+    /// <param name="piece">Die zu ueberpruefende Figur</param>
+    /// <returns>Gibt zurueck, ob die Funktion auf die uebergebene Figur zutrifft</returns>
     public static bool IsSlidingPiece(int piece)
     {
-        // Figur ist ein Läufer
+        // Figur ist ein Laeufer
         if (piece == 12 || piece == 20)
             return true;
 
@@ -126,11 +126,11 @@ public static class Piece
     }
 
     /// <summary>
-    /// Die Funktion <c>IsKnight</c> überprüft, ob es
+    /// Die Funktion <c>IsKnight</c> ueberprueft, ob es
     /// sich bei einer Figur um einen Springer handelt.
     /// </summary>
-    /// <param name="piece">Die zu überprüfende Figur</param>
-    /// <returns>Gibt zurück, ob die übergebene Figur ein Springer ist</returns>
+    /// <param name="piece">Die zu ueberpruefende Figur</param>
+    /// <returns>Gibt zurueck, ob die uebergebene Figur ein Springer ist</returns>
     public static bool IsKnight(int piece)
     {
         // Figur ist ein Springer
@@ -141,14 +141,14 @@ public static class Piece
     }
 
     /// <summary>
-    /// Die Funktion <c>IsKing</c> überprüft, ob es
-    /// sich bei einer Figur um einen König handelt.
+    /// Die Funktion <c>IsKing</c> ueberprueft, ob es
+    /// sich bei einer Figur um einen Koenig handelt.
     /// </summary>
-    /// <param name="piece">Die zu überprüfende Figur</param>
-    /// <returns>Gibt zurück, ob die übergebene Figur ein König ist</returns>
+    /// <param name="piece">Die zu ueberpruefende Figur</param>
+    /// <returns>Gibt zurueck, ob die uebergebene Figur ein Koenig ist</returns>
     public static bool IsKing(int piece)
     {
-        // Figur ist ein König
+        // Figur ist ein Koenig
         if (piece == 9 || piece == 17)
             return true;
 
@@ -156,11 +156,11 @@ public static class Piece
     }
 
     /// <summary>
-    /// Die Funktion <c>IsPawn</c> überprüft, ob es
+    /// Die Funktion <c>IsPawn</c> ueberprueft, ob es
     /// sich bei einer Figur um einen Bauern handelt.
     /// </summary>
-    /// <param name="piece">Die zu überprüfende Figur</param>
-    /// <returns>Gibt zurück, ob die übergebene Figur ein Bauer ist</returns>
+    /// <param name="piece">Die zu ueberpruefende Figur</param>
+    /// <returns>Gibt zurueck, ob die uebergebene Figur ein Bauer ist</returns>
     public static bool IsPawn(int piece)
     {
         // Figur ist ein Bauer
