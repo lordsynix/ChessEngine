@@ -35,11 +35,11 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
             Move curMove = new(oldSlotNum, slotNum);
 
-            // Überprüft, ob der eingegebene Zug möglich ist (Normaler- sowie Schlagzug)
+            // ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
             if (!GameManager.instance.possibleMoves.Any(
                 m => m.StartSquare == curMove.StartSquare && m.TargetSquare == curMove.TargetSquare)) return;
 
-            // Lädt den gegebenen Zug
+            // Laedt den gegebenen Zug
             Move move = GameManager.instance.possibleMoves.Find(m => m.StartSquare == oldSlotNum && m.TargetSquare == slotNum);
             
             if (move.Promotion != -1)
@@ -69,7 +69,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         pointerDrag.GetComponentInChildren<Image>().sprite = null;
         pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
 
-        // Löscht den Bauer, der mit EnPssant geschlagen wurde
+        // Loescht den Bauer, der mit EnPssant geschlagen wurde
         if (move.Capture == 2)
         {
             int enPasSq = Board.instance.ConvertIndex120To64(Board.instance.GetEnPassantSquare());

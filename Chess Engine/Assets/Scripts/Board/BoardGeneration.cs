@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Die Klasse <c>BoardGeneration</c> ist für die Generierung der Benutzeroberfläche 
-/// des Spielfelds beim Starten des Programms zuständig. Beinhaltet Funktionen für die 
+/// Die Klasse <c>BoardGeneration</c> ist fuer die Generierung der Benutzeroberflaeche
+/// des Spielfelds beim Starten des Programms zustaendig. Beinhaltet Funktionen fuer die
 /// Visualisierung der Felder und Figuren auf dem Brett.
 /// </summary>
 public class BoardGeneration : MonoBehaviour
@@ -41,7 +41,7 @@ public class BoardGeneration : MonoBehaviour
 
     void CreateGraphicalBoard()
     {
-        // Erstellt das Muster des Schachbretts für alle 64 Felder
+        // Erstellt das Muster des Schachbretts fuer alle 64 Felder
         for (int rank = 0; rank < 8; rank++)
         {
             for (int file = 0; file < 8; file++)
@@ -57,12 +57,12 @@ public class BoardGeneration : MonoBehaviour
 
     void GenerateSquare (Vector2 position, bool isLightSquare)
     {
-        // Definiert für jedes Feld eine Farbe
+        // Definiert fuer jedes Feld eine Farbe
         var squareColor = (isLightSquare) ? lightCol : darkCol;
 
         // Initiiert ein Feld an der angegebenen Position als child des Board Panel.
-        // Die Feldposition muss mit der Hälfte der Breite und negativen Hälfte der
-        // Höhe des parent transform subtrahiert werden um korrekt abgebildet zu werden.
+        // Die Feldposition muss mit der Haelfte der Breite und negativen Haelfte der
+        // Hoehe des parent transform subtrahiert werden um korrekt abgebildet zu werden.
         GameObject newSquare = Instantiate(squarePrefab, transform);
         
         RectTransform rtParent = (RectTransform)transform;
@@ -92,7 +92,7 @@ public class BoardGeneration : MonoBehaviour
     }
 
     /// <summary>
-    /// Die Methode <c>ResetBoard</c> setzt die grafische Repräsentierung der Figuren zurück
+    /// Die Methode <c>ResetBoard</c> setzt die grafische Repraesentierung der Figuren zurueck
     /// </summary>
     public void ResetBoard()
     {

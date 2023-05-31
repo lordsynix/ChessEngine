@@ -8,7 +8,7 @@ public class MainMenu : MonoBehaviour
 
     private void Start()
     {
-        // Startet die Hintergrundmusik des Hauptmenüs.
+        // Startet die Hintergrundmusik des Hauptmenues.
         FindObjectOfType<AudioManager>().Play("theme_mainmenu");
     }
 
@@ -16,7 +16,7 @@ public class MainMenu : MonoBehaviour
 
     public void Play()
     {
-        // Lädt die Schachszene (Hauptszene)
+        // Laedt die Schachszene (Hauptszene)
         SceneManager.LoadScene(1);
     }
 
