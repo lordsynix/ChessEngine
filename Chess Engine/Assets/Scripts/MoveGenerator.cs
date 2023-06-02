@@ -221,8 +221,6 @@ public class MoveGenerator
     {
         if (!Piece.IsPawn(piece)) return false;
 
-        if (targetSquare == startSquare + 10 || targetSquare == startSquare - 10) return false;
-
         if (targetSquare >= 21 && targetSquare <= 28 || targetSquare >= 91 && targetSquare <= 98) return true;
 
         return false;
@@ -230,8 +228,11 @@ public class MoveGenerator
 
     void GeneratePromotionMoves(int startSquare, int targetSquare, int capture)
     {
-        if (targetSquare == startSquare + WhitePawnOffsets[0] || targetSquare == startSquare + BlackPawnOffsets[0])
-            return;
+        if (capture == 1)
+        {
+            if (targetSquare == startSquare + WhitePawnOffsets[0] || targetSquare == startSquare + BlackPawnOffsets[0])
+                return;
+        }
 
         foreach(int piece in PromotionPieces)
         {
