@@ -7,12 +7,12 @@ using UnityEngine.SceneManagement;
 using static MoveGenerator;
 
 /// <summary>
-/// Die Klasse <c>GameManager</c> ist f�r die Verwaltung des Spielablaufs zust�ndig.
+/// Die Klasse <c>GameManager</c> ist fuer die Verwaltung des Spielablaufs zustaendig.
 /// Initiiert alle anderen Klassen und dient als Fundament des Programms.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq";
+    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // TODO: was ist die bedeutung dieses strings?
     // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
 
     public static GameManager instance;
@@ -127,7 +127,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnGeneratePosition()
     {
-        if (fenInputField.text == "")
+        if (fenInputField.text == "") // TODO: wenn das fenInputField null ist, wird hier eine exception geworfen werden.
+        // es waere vielleicht sinnvoller, das if von zeile 131 vor diesem if einzufuegen...?
         {
             UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
             return;
@@ -145,8 +146,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void DebugButton()
     {
-        debugMode = !debugMode;
-        if (debugMode) Debug();
+        debugMode = !debugMode; // TODO: ich wuerde hier einen kommentar einfuegen warum du das so machst
+        if (debugMode) Debug(); // ich finde den code lesbarer, wenn ein if auf 2 zeilen verteilt wird, auch wenn danach nur eine zeile folgt
         else ExitDebug();
     }
     
@@ -162,10 +163,10 @@ public class GameManager : MonoBehaviour
     
     void ResetBoard()
     {
-        // Brett-Variablen zur�cksetzten
+        // Brett-Variablen zuruecksetzen
         board.ResetBoard();
 
-        // Setzt die grafische Repr�sentierung der Figuren zur�ck.
+        // Setzt die grafische Repraesentierung der Figuren zurueck.
         BoardGeneration.instance.ResetBoard();
     }
 
@@ -179,7 +180,7 @@ public class GameManager : MonoBehaviour
         square64 = board.GetSquare64From120();
         board.DebugPieceLocation();
         
-        // L�scht die alten Zeilen mit Informationen zu einem Feld
+        // Loescht die alten Zeilen mit Informationen zu einem Feld
         for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
         {
             Destroy(squareInformationHolder.transform.GetChild(i).gameObject);
@@ -215,12 +216,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Definiert den Spieler, welcher als n�chstes Spielen kann
+        // Definiert den Spieler, welcher als naechstes Spielen kann
         sideToMove.text = "Player to move: <b>" + (board.GetWhiteToMove() ? "White </b>" : "Black </b>");
 
         details.SetActive(true);
 
-        // Visualisiert Informationen �ber ein Feld auf dem Brett
+        // Visualisiert Informationen ueber ein Feld auf dem Brett
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
         int k = 0;
         foreach (GameObject go in squaresGO)
@@ -246,7 +247,7 @@ public class GameManager : MonoBehaviour
         // Deaktiviert Details Scrollbar
         details.SetActive(false);
 
-        // Deaktiviert die grafischen Informationen f�r ein Feld
+        // Deaktiviert die grafischen Informationen fuer ein Feld
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
         foreach (GameObject go in squaresGO)
         {
@@ -264,7 +265,7 @@ public class GameManager : MonoBehaviour
 
         foreach (Move move in moves)
         {
-            // Aktiviert die grafische Visualisierung der m�glichen Felder
+            // Aktiviert die grafische Visualisierung der moeglichen Felder
             int targetSquare = move.TargetSquare;
             GameObject targetSquareGO = BoardGeneration.instance.squaresGO
                 [Board.instance.ConvertIndex120To64(targetSquare)];
@@ -280,7 +281,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void DeactivateMoveVisualisation()
     {
-        // Deaktiviert die grafische Visualisierung der m�glichen Felder
+        // Deaktiviert die grafische Visualisierung der moeglichen Felder
         foreach (GameObject go in highlightedMoves)
         {
             go.transform.GetChild(2).gameObject.SetActive(false);

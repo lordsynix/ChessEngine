@@ -5,8 +5,8 @@ using UnityEngine;
 using static MoveGenerator;
 
 /// <summary>
-/// Die Klasse <c>Board</c> ist f�r die interne Brettdarstellung des Spielfelds zust�ndig. 
-/// Verwaltet alle wichtigen Informationen �ber das Schachspiel.
+/// Die Klasse <c>Board</c> ist fuer die interne Brettdarstellung des Spielfelds zustaendig.
+/// Verwaltet alle wichtigen Informationen ueber das Schachspiel.
 /// </summary>
 public class Board
 {
@@ -28,10 +28,10 @@ public class Board
     #region SETTER AND GETTER
 
     /// <summary>
-    /// Die Methode <c>GetSquare64</c> gibt einen Square Array zur�ck, speichert Piece.Type 
-    /// und Piece.Color als int-Wert f�r jedes Feld in der 8x8-Darstellung.
+    /// Die Methode <c>GetSquare64</c> gibt einen Square Array zurueck, speichert Piece.Type
+    /// und Piece.Color als int-Wert fuer jedes Feld in der 8x8-Darstellung.
     /// </summary>
-    /// <returns>Gibt die 8x8-Darstellung des Spielfelds als int[64] zur�ck.</returns>
+    /// <returns>Gibt die 8x8-Darstellung des Spielfelds als int[64] zurueck.</returns>
     public int[] GetSquare64()
     {
         return Square64;
@@ -50,10 +50,10 @@ public class Board
     }
 
     /// <summary>
-    /// Die Methode <c>GetSquare120</c> gibt einen Square Array zur�ck, speichert Piece.Type 
-    /// und Piece.Color als int-Wert f�r jedes Feld in der 12x10-Darstellung.
+    /// Die Methode <c>GetSquare120</c> gibt einen Square Array zurueck, speichert Piece.Type
+    /// und Piece.Color als int-Wert fuer jedes Feld in der 12x10-Darstellung.
     /// </summary>
-    /// <returns>Gibt die 12x10-Darstellung des Spielfelds als int[120] zur�ck.</returns>
+    /// <returns>Gibt die 12x10-Darstellung des Spielfelds als int[120] zurueck.</returns>
     public int[] GetSquare120()
     {
         return Square120;
@@ -71,9 +71,9 @@ public class Board
     }
 
     /// <summary>
-    /// Die Methode <c>GetWhiteToMove</c> verwaltet den Spieler, der als n�chstes spielen kann.
+    /// Die Methode <c>GetWhiteToMove</c> verwaltet den Spieler, der als naechstes spielen kann.
     /// </summary>
-    /// <returns>Gibt einen bool zur�ck, ob weiss am Zug ist.</returns>
+    /// <returns>Gibt einen bool zurueck, ob weiss am Zug ist.</returns>
     public bool GetWhiteToMove()
     {
         return WhiteToMove;
@@ -109,7 +109,7 @@ public class Board
     {
         WhiteCastleKingside = false; WhiteCastleQueenside = false;
         BlackCastleKingside = false; BlackCastleQueenside = false;
-        
+
         foreach (char symbol in s)
         {
             if (char.ToLower(symbol) == 'k')
@@ -131,8 +131,8 @@ public class Board
     #region BRETTDARSTELLUNG
 
     /// <summary>
-    /// Die Methode <c>GetSquare120From64</c> ver�ndert, ausgehend von der 8x8-Darstellung 
-    /// die Werte f�r die 12x10-Darstellung.
+    /// Die Methode <c>Get120From64</c> veraendert, ausgehend von der 8x8-Darstellung
+    /// die Werte fuer die 12x10-Darstellung.
     /// </summary>
     /// <returns>Gibt den entsprechenden Square120 Array zurück.</returns>
     public int[] GetSquare120From64()
@@ -145,7 +145,7 @@ public class Board
             Square120[i] = -1;
         }
 
-        // Liest die Werte der 8x8-Darstellung f�r die 12x10-Darstellung.
+        // Liest die Werte der 8x8-Darstellung fuer die 12x10-Darstellung.
         int j = 19;
         for (int i = 0; i < 64; i++)
         {
@@ -163,8 +163,8 @@ public class Board
     }
 
     /// <summary>
-    /// Die Methode <c>GetSquare64From120</c> ver�ndert, ausgehend von der 12x10-Darstellung 
-    /// die Werte f�r die 8x8-Darstellung.
+    /// Die Methode <c>Get64From120</c> veraendert, ausgehend von der 12x10-Darstellung
+    /// die Werte fuer die 8x8-Darstellung.
     /// </summary>
     /// <returns>Gibt den entsprechenden Square64 Array zurück.</returns>
     public int[] GetSquare64From120()
@@ -187,9 +187,9 @@ public class Board
 
     /// <summary>
     /// Die Methode <c>ConvertIndex64To120</c> gibt, ausgehend eines Index der 
-    /// 8x8-Darstellung den entsprechenden Index in der 12x10-Darstellung zur�ck.
+    /// 8x8-Darstellung den entsprechenden Index in der 12x10-Darstellung zurueck.
     /// </summary>
-    /// <returns>Gibt den entsprechenden Index der 12x10-Darstellung zur�ck.</returns>
+    /// <returns>Gibt den entsprechenden Index der 12x10-Darstellung zurueck.</returns>
     public int ConvertIndex64To120(int index)
     {
         int file = index % 8;
@@ -199,9 +199,9 @@ public class Board
 
     /// <summary>
     /// Die Methode <c>ConvertIndex120To64</c> gibt, ausgehend eines Index der 12x10-Darstellung 
-    /// den entsprechenden Index in der 8x8-Darstellung zur�ck.
+    /// den entsprechenden Index in der 8x8-Darstellung zurueck.
     /// </summary>
-    /// <returns>Gibt den entsprechenden Index der 8x8-Darstellung zur�ck.</returns>
+    /// <returns>Gibt den entsprechenden Index der 8x8-Darstellung zurueck.</returns>
     public int ConvertIndex120To64(int index)
     {
         int file = (index % 10) - 1;
@@ -251,7 +251,7 @@ public class Board
     #endregion
 
     /// <summary>
-    /// Die Methode <c>Initialize</c> wird ausgef�hrt, 
+    /// Die Methode <c>Initialize</c> wird ausgefuehrt,
     /// wenn eine neue Instanz der Klasse geschaffen wird.
     /// </summary>
     public void Initialize()

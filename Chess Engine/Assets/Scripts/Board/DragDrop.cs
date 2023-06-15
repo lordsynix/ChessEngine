@@ -39,7 +39,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         int[] square120 = Board.instance.GetSquare120();
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
-        // Generiert alle Z�ge f�r die ausgew�hlte Figur
+        // Generiert alle Zuege fuer die ausgewaehlte Figur
         List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
         if (moves != null)
         {
@@ -51,8 +51,8 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // Stellt sicher, dass sich die ausgew�hlte Figur
-        // �ber den anderen UI-Elementen befindet
+        // Stellt sicher, dass sich die ausgewaehlte Figur
+        // ueber den anderen UI-Elementen befindet
         canvasGroup.blocksRaycasts = false;
         myCanvas.sortingOrder += 1;
     }

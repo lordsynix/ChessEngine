@@ -30,7 +30,7 @@ public class MoveGenerator
         public int Promotion;
         public int EnPassant;
 
-        // Constructor f�r einen Zug
+        // Constructor fuer einen Zug
         public Move(int startSquare, int targetSquare, int capture = 0, int promotion = -1, int enPassant = -1)
         {
             StartSquare = startSquare;
@@ -129,7 +129,7 @@ public class MoveGenerator
                 LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
             }
 
-            // Bauernzug f�r 2 Feldern
+            // Bauernzug fuer 2 Feldern
             else if (dirIndex == 1)
             {
                 if (Piece.IsColor(friendlyColor, Piece.WHITE) && startSquare >= 81 && startSquare <= 88)
@@ -139,7 +139,7 @@ public class MoveGenerator
                     LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece, true);
             }
 
-            // Z�ge nur m�glich, wenn diagonal geschlagen wird
+            // Zuege nur moeglich, wenn diagonal geschlagen wird
             else CanCapture(pieceOnTargetSquare, startSquare, targetSquare, piece);
         }
     }
