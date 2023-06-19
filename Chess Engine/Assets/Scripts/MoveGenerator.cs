@@ -2,19 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveGenerator
+public static class MoveGenerator
 {
-    #region INSTANCE
-
-    public static MoveGenerator instance;
-
-    private void Awake()
-    {
-        instance = this;
-    }
-
-    #endregion
-
     public static readonly int[] DirectionOffsets = { 10, -10, 1, -1, 11, -11, 9, -9 };
     public static readonly int[] KnightOffsets = { -12, -21, -19, -8, 12, 21, 19, 8 };
     public static readonly int[] WhitePawnOffsets = { -10, -20, -11, -9 };
@@ -25,33 +14,33 @@ public class MoveGenerator
     {
         public int StartSquare { get; set; }
         public int TargetSquare { get; set; }
-        // 0 - Normaler Zug, 1 - Normales Schlagen, 2 - En Passant Schlag
-        public int Capture;
+        // 0 - Normaler Zug, 1 - Normales Schlagen, 2 - En Passant Schlag, 3 - Castle Kingside, 4 - Castle Queenside
+        public int Type;
         public int Promotion;
         public int EnPassant;
 
         // Constructor fuer einen Zug
-        public Move(int startSquare, int targetSquare, int capture = 0, int promotion = -1, int enPassant = -1)
+        public Move(int startSquare, int targetSquare, int type = 0, int promotion = -1, int enPassant = -1)
         {
             StartSquare = startSquare;
             TargetSquare = targetSquare;
-            Capture = capture;
+            Type = type;
             Promotion = promotion;
             EnPassant = enPassant;
         }
     }
 
-    List<Move> moves;
-    private int[] square120;
-    private int friendlyColor;
-    private int opponentColor;
+    private static List<Move> moves;
+    private static int[] square120;
+    private static int friendlyColor;
+    private static int opponentColor;
     
-    public List<Move> GenerateMovesForPiece(int startSquare, int piece)
+    public static List<Move> GenerateMovesForPiece(int startSquare, int piece)
     {
         moves = new();
-        square120 = Board.instance.GetSquare120();
+        square120 = Board.GetSquare120();
 
-        if (Board.instance.GetWhiteToMove())
+        if (Board.GetWhiteToMove())
         {
             friendlyColor = Piece.WHITE;
             opponentColor = Piece.BLACK;
@@ -86,7 +75,12 @@ public class MoveGenerator
         return moves;
     }
 
-    void GenerateSlidingMoves (int startSquare, int piece)
+    public static void GenerateMoves()
+    {
+        List<int[]> piecesList = Board.piecesList;
+    }
+
+    static void GenerateSlidingMoves (int startSquare, int piece)
     {
         int startDirIndex = Piece.IsType(piece, Piece.BISHOP) ? 4 : 0;
         int endDirIndex = Piece.IsType(piece, Piece.ROOK) ? 4 : 8;
@@ -104,7 +98,7 @@ public class MoveGenerator
         }
     }
 
-    void GenerateKnightMoves(int startSquare, int piece)
+    static void GenerateKnightMoves(int startSquare, int piece)
     {
         for (int dirIndex = 0; dirIndex < 8; dirIndex++)
         {
@@ -115,7 +109,7 @@ public class MoveGenerator
         }
     }
 
-    void GeneratePawnMoves(int startSquare, int piece)
+    static void GeneratePawnMoves(int startSquare, int piece)
     {
         for (int dirIndex = 0; dirIndex < 4; dirIndex++)
         {
@@ -144,7 +138,7 @@ public class MoveGenerator
         }
     }
 
-    void GenerateKingMoves(int startSquare, int piece)
+    static void GenerateKingMoves(int startSquare, int piece)
     {
         for (int dirOffset = 0; dirOffset < 8; dirOffset++)
         {
@@ -153,9 +147,10 @@ public class MoveGenerator
 
             LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece);
         }
+        GenerateCastlingMoves(startSquare);
     }
 
-    bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare, int piece, bool doubleAdvance = false)
+    static bool LegitimateMove (int pieceOnTargetSquare, int startSquare, int targetSquare, int piece, bool doubleAdvance = false)
     {
         // Spielfeldrand erreicht
         if (pieceOnTargetSquare == -1)
@@ -198,7 +193,7 @@ public class MoveGenerator
         return true;
     }
 
-    bool CanCapture (int pieceOnTargetSquare, int startSquare, int targetSquare, int piece)
+    static bool CanCapture (int pieceOnTargetSquare, int startSquare, int targetSquare, int piece)
     {
         // Blockiert von gegnerischen Figur
         if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
@@ -210,23 +205,25 @@ public class MoveGenerator
         }
         else if (Piece.IsPawn(piece))
         {
-            if (targetSquare == Board.instance.GetEnPassantSquare())
+            if (targetSquare == Board.GetEnPassantSquare())
                 moves.Add(new Move(startSquare, targetSquare, 2));
         }
 
         return false;
     }
 
-    bool CanPromote(int startSquare, int targetSquare, int piece)
+    static bool CanPromote(int startSquare, int targetSquare, int piece)
     {
-        if (!Piece.IsPawn(piece)) return false;
+        if (!Piece.IsPawn(piece)) 
+            return false;
 
-        if (targetSquare >= 21 && targetSquare <= 28 || targetSquare >= 91 && targetSquare <= 98) return true;
+        if (targetSquare >= 21 && targetSquare <= 28 || targetSquare >= 91 && targetSquare <= 98) 
+            return true;
 
         return false;
     }
 
-    void GeneratePromotionMoves(int startSquare, int targetSquare, int capture)
+    static void GeneratePromotionMoves(int startSquare, int targetSquare, int capture)
     {
         if (capture == 1)
         {
@@ -238,5 +235,91 @@ public class MoveGenerator
         {
             moves.Add(new Move(startSquare, targetSquare, capture, friendlyColor | piece));
         }
+    }
+
+    static void GenerateCastlingMoves(int startSquare)
+    {
+        int[] CastleOffsets = { 2, -2 };
+
+        foreach (int offset in CastleOffsets)
+        {
+            bool kingside;
+            bool permission;
+
+            bool[] permissions = Board.GetCastlePermissions();
+
+            bool WhiteCastleKingside = permissions[0];
+            bool WhiteCastleQueenside = permissions[1];
+            bool BlackCastleKingside = permissions[2];
+            bool BlackCastleQueenside = permissions[3];
+
+            if (offset > 0) kingside = true;
+            else kingside = false;
+
+            // Stellt sicher, dass der Spieler rochieren darf.
+            if (Piece.IsColor(friendlyColor, Piece.WHITE))
+            {
+                if (kingside) if (!WhiteCastleKingside) continue;
+                if (!kingside) if (!WhiteCastleQueenside) continue;
+            }
+            else
+            {
+                if (kingside) if (!BlackCastleKingside) continue;
+                if (!kingside) if (!BlackCastleQueenside) continue;
+            }
+            
+            // Stellt sicher, dass der Spieler rochieren kann.
+            permission = GenerateCastlingPermission(startSquare, offset, kingside);
+            
+            if (permission)
+            {
+                int targetSquare = startSquare + offset;
+
+                moves.Add(new Move(startSquare, targetSquare, kingside ? 3 : 4));
+            }
+        }        
+    }
+
+    static bool GenerateCastlingPermission(int startSquare, int offset, bool kingside, bool permission = true)
+    {
+        // Ueberprueft, ob die Felder zwischen Koenig und Turm leer sind.
+        for (int i = 1; i < 4; i++)
+        {
+            int square = startSquare + i * (offset / 2);
+            //Debug.Log("Checking for square: " + square);
+
+            if (square != 28 && square != 98)
+            {
+                if (square120[square] != 0)
+                {
+                    //Debug.Log("Piece between castling pieces");
+                    permission = false;
+                    break;
+                }
+                // TODO Check if squares are attacked
+            }
+        }
+
+        // Stellt sicher, dass die mitrochierende Figur ein eigener Turm ist.
+        if (kingside)
+        {
+            if (square120[startSquare + 3] != (Piece.ROOK | friendlyColor))
+            {
+                //Debug.Log("Castling piece is not a Rook");
+                permission = false;
+            }
+
+        }
+        else
+        {
+            if (square120[startSquare - 4] != (Piece.ROOK | friendlyColor))
+            {
+                //Debug.Log("Castling piece is not a Rook");
+                permission = false;
+            }
+
+        }
+
+        return permission;
     }
 }

@@ -10,8 +10,6 @@ using static MoveGenerator;
 public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler,
                                        IDragHandler, IInitializePotentialDragHandler
 {
-    public MoveGenerator moveGenerator = new();
-
     public bool foundSquare = false;
 
     private GameObject canvas;
@@ -36,11 +34,11 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        int[] square120 = Board.instance.GetSquare120();
+        int[] square120 = Board.GetSquare120();
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
         // Generiert alle Zuege fuer die ausgewaehlte Figur
-        List<Move> moves = moveGenerator.GenerateMovesForPiece(slotNum, square120[slotNum]);
+        List<Move> moves = GenerateMovesForPiece(slotNum, square120[slotNum]);
         if (moves != null)
         {
             // Aktiviert die Visualisierung aller möglichen Züge

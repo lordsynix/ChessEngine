@@ -68,7 +68,7 @@ public class BoardGeneration : MonoBehaviour
         RectTransform rtParent = (RectTransform)transform;
         newSquare.transform.localPosition = position - new Vector2(rtParent.rect.width / 2, -rtParent.rect.height / 2);
         newSquare.GetComponent<Image>().color = squareColor;
-        int sq120 = GameManager.instance.board.ConvertIndex64To120(sqNum);
+        int sq120 = Board.ConvertIndex64To120(sqNum);
         Variables.Object(newSquare.transform.GetChild(0)).Set("SquareNum", sq120);
         sqNum++;
         squaresGO.Add(newSquare);

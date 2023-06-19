@@ -13,7 +13,7 @@ using static MoveGenerator;
 /// </summary>
 public class SquareSlot : MonoBehaviour, IDropHandler
 {
-    [SerializeField] public GameObject curPromotionPointerDrag = null;
+    [HideInInspector] public GameObject curPromotionPointerDrag = null;
 
     private Image slot;
     private int oldSlotNum;
@@ -33,7 +33,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
             Move curMove = new(oldSlotNum, slotNum);
 
-            // ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
+            // Ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
             if (!GameManager.instance.possibleMoves.Any(
                 m => m.StartSquare == curMove.StartSquare && m.TargetSquare == curMove.TargetSquare)) return;
 
@@ -51,8 +51,6 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
     public void Move(GameObject pointerDrag, Move move)
     {
-        GameManager.instance.DeactivatePromotionVisuals();
-
         // Setzt den Positionsursprung der Figur auf das neue Feld
         pointerDrag.GetComponent<DragDrop>().foundSquare = true;
         pointerDrag.GetComponent<RectTransform>().anchoredPosition =
@@ -68,26 +66,62 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
 
         // Loescht den Bauer, der mit EnPssant geschlagen wurde
-        if (move.Capture == 2)
-        {
-            int enPasSq = Board.instance.ConvertIndex120To64(Board.instance.GetEnPassantSquare());
-            enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 8 : -8;
+        if (move.Type == 2) EnPassant(move);
 
-            GameObject go = BoardGeneration.instance.squaresGO[enPasSq].transform.GetChild(0).gameObject;
-            go.GetComponent<Image>().sprite = null;
-            go.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
-
-            FindObjectOfType<AudioManager>().Play("move_enpassant");
-        }
+        // Rochiert den Turm
+        if (move.Type == 3) Castle(move, true);
+        if (move.Type == 4) Castle(move, false);
 
         // SFX
-        if (move.Capture == 0) FindObjectOfType<AudioManager>().Play("move_normal");
-        else if (move.Capture == 1) FindObjectOfType<AudioManager>().Play("move_capture");
+        if (move.Type == 0) FindObjectOfType<AudioManager>().Play("move_normal");
+        else if (move.Type == 1) FindObjectOfType<AudioManager>().Play("move_capture");
 
         // Aktualisiert die Brett-Variablen
-        Board.instance.MakeMove(move);
+        Board.MakeMove(move);
 
         // Stellt sicher, dass der DebugMode verlassen wird
         GameManager.instance.Debug();
+    }
+
+    void EnPassant(Move move)
+    {
+        int enPasSq = Board.ConvertIndex120To64(Board.GetEnPassantSquare());
+        enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 8 : -8;
+
+        GameObject go = BoardGeneration.instance.squaresGO[enPasSq].transform.GetChild(0).gameObject;
+        go.GetComponent<Image>().sprite = null;
+        go.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
+
+        FindObjectOfType<AudioManager>().Play("move_enpassant");
+    }
+
+    void Castle(Move move, bool kingside)
+    {
+        int oldRookSq;
+        int newRookSq;
+
+        if (kingside)
+        {
+            oldRookSq = move.StartSquare + 3;
+            newRookSq = move.StartSquare + 1;
+        }
+        else
+        {
+            oldRookSq = move.StartSquare - 4;
+            newRookSq = move.StartSquare - 1;
+        }
+
+        GameObject newSq = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(newRookSq)].transform.GetChild(0).gameObject;
+        GameObject oldSq = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(oldRookSq)].transform.GetChild(0).gameObject;
+
+        // Aktualisiert das neue Feld des Turms
+        newSq.GetComponent<Image>().sprite = oldSq.GetComponent<Image>().sprite;
+        newSq.GetComponent<Image>().color = new Color32(255, 255, 255, 255);
+
+        // Aktualisiert das alte Feld des Turms
+        oldSq.GetComponent<Image>().sprite = null;
+        oldSq.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
+
+        FindObjectOfType<AudioManager>().Play("move_normal");
     }
 }

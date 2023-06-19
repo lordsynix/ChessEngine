@@ -171,6 +171,25 @@ public static class Piece
         return false;
     }
 
+    public static char CharFromPieceValue(int piece)
+    {
+        bool isWhite = IsColor(piece, WHITE);
+
+        if (isWhite) piece -= WHITE;
+        else piece -= BLACK;
+
+        return piece switch
+        {
+            KING => isWhite ? 'K' : 'k',
+            PAWN => isWhite ? 'P' : 'p',
+            KNIGHT => isWhite ? 'N' : 'n',
+            BISHOP => isWhite ? 'B' : 'b',
+            ROOK => isWhite ? 'R' : 'r',
+            QUEEN => isWhite ? 'Q' : 'q',
+            _ => ' ',
+        };
+    }
+
     public static List<int[]> GeneratePiecesList()
     {
         List<int[]> piecesList = new()
@@ -202,4 +221,5 @@ public static class Piece
 
         return piecesList;
     }
+
 }

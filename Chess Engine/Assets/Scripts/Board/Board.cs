@@ -8,10 +8,8 @@ using static MoveGenerator;
 /// Die Klasse <c>Board</c> ist fuer die interne Brettdarstellung des Spielfelds zustaendig.
 /// Verwaltet alle wichtigen Informationen ueber das Schachspiel.
 /// </summary>
-public class Board
+public static class Board
 {
-    public static Board instance;
-
     private static int[] Square64;
     private static int[] Square120;
 
@@ -23,7 +21,7 @@ public class Board
     public static bool BlackCastleKingside = false;
     public static bool BlackCastleQueenside = false;
 
-    public List<int[]> piecesList = new();
+    public static List<int[]> piecesList = new();
 
     #region SETTER AND GETTER
 
@@ -32,12 +30,12 @@ public class Board
     /// und Piece.Color als int-Wert fuer jedes Feld in der 8x8-Darstellung.
     /// </summary>
     /// <returns>Gibt die 8x8-Darstellung des Spielfelds als int[64] zurueck.</returns>
-    public int[] GetSquare64()
+    public static int[] GetSquare64()
     {
         return Square64;
     }
 
-    public void SetSquare64(int[] s)
+    public static void SetSquare64(int[] s)
     {
         if (s.Length != 64)
         {
@@ -46,7 +44,7 @@ public class Board
         }
         Square64 = s;
         Square120 = GetSquare120From64();
-        GetPieceLocation();
+        piecesList = GetPieceLocation();
     }
 
     /// <summary>
@@ -54,12 +52,12 @@ public class Board
     /// und Piece.Color als int-Wert fuer jedes Feld in der 12x10-Darstellung.
     /// </summary>
     /// <returns>Gibt die 12x10-Darstellung des Spielfelds als int[120] zurueck.</returns>
-    public int[] GetSquare120()
+    public static int[] GetSquare120()
     {
         return Square120;
     }
 
-    public void SetSquare120(int[] s)
+    public static void SetSquare120(int[] s)
     {
         if (s.Length != 120)
         {
@@ -68,33 +66,34 @@ public class Board
         }
         Square120 = s;
         Square64 = GetSquare64From120();
+        piecesList = GetPieceLocation();
     }
 
     /// <summary>
     /// Die Methode <c>GetWhiteToMove</c> verwaltet den Spieler, der als naechstes spielen kann.
     /// </summary>
     /// <returns>Gibt einen bool zurueck, ob weiss am Zug ist.</returns>
-    public bool GetWhiteToMove()
+    public static bool GetWhiteToMove()
     {
         return WhiteToMove;
     }
 
-    public void SetWhiteToMove(bool w)
+    public static void SetWhiteToMove(bool w)
     {
         WhiteToMove = w;
     }
 
-    public int GetEnPassantSquare()
+    public static int GetEnPassantSquare()
     {
         return EnPassantSquare;
     }
 
-    public void SetEnPassantSquare(int e)
+    public static void SetEnPassantSquare(int e)
     {
         EnPassantSquare = e;
     }
 
-    public bool[] GetCastlePermissions()
+    public static bool[] GetCastlePermissions()
     {
         return new bool[]
         {
@@ -105,7 +104,7 @@ public class Board
         };
     }
 
-    public void SetCastlePermissions(string s)
+    public static void SetCastlePermissions(string s)
     {
         WhiteCastleKingside = false; WhiteCastleQueenside = false;
         BlackCastleKingside = false; BlackCastleQueenside = false;
@@ -135,7 +134,7 @@ public class Board
     /// die Werte fuer die 12x10-Darstellung.
     /// </summary>
     /// <returns>Gibt den entsprechenden Square120 Array zurück.</returns>
-    public int[] GetSquare120From64()
+    public static int[] GetSquare120From64()
     {
         Square120 = new int[120];
 
@@ -167,7 +166,7 @@ public class Board
     /// die Werte fuer die 8x8-Darstellung.
     /// </summary>
     /// <returns>Gibt den entsprechenden Square64 Array zurück.</returns>
-    public int[] GetSquare64From120()
+    public static int[] GetSquare64From120()
     {
         
         Square64 = new int[64];
@@ -190,7 +189,7 @@ public class Board
     /// 8x8-Darstellung den entsprechenden Index in der 12x10-Darstellung zurueck.
     /// </summary>
     /// <returns>Gibt den entsprechenden Index der 12x10-Darstellung zurueck.</returns>
-    public int ConvertIndex64To120(int index)
+    public static int ConvertIndex64To120(int index)
     {
         int file = index % 8;
         int rank = (index - file) / 8;
@@ -202,7 +201,7 @@ public class Board
     /// den entsprechenden Index in der 8x8-Darstellung zurueck.
     /// </summary>
     /// <returns>Gibt den entsprechenden Index der 8x8-Darstellung zurueck.</returns>
-    public int ConvertIndex120To64(int index)
+    public static int ConvertIndex120To64(int index)
     {
         int file = (index % 10) - 1;
         int rank = ((index - (index % 10)) / 10) - 2;
@@ -213,7 +212,7 @@ public class Board
     /// Die Methode <c>GetPieceLocation</c> speichert, ausgehend von der 8x8-Darstellung
     /// die Position für alle Figuren auf dem Brett in Form eines int-Wertes.
     /// </summary>
-    public void GetPieceLocation()
+    public static List<int[]> GetPieceLocation()
     {
         piecesList = Piece.GeneratePiecesList();
 
@@ -230,11 +229,12 @@ public class Board
                     break;
                 }
             }
-
         }
+
+        return piecesList;
     }
 
-    public void DebugPieceLocation()
+    public static void DebugPieceLocation()
     {
         for (int i = 0; i < piecesList.Count; i++)
         {
@@ -254,10 +254,8 @@ public class Board
     /// Die Methode <c>Initialize</c> wird ausgefuehrt,
     /// wenn eine neue Instanz der Klasse geschaffen wird.
     /// </summary>
-    public void Initialize()
+    public static void Initialize()
     {
-        instance = this;
-
         Square64 = new int[64];
         Square120 = new int[120];
     }
@@ -265,60 +263,50 @@ public class Board
     /// <summary>
     /// Die Methode <c>ResetBoard</c> setzt alle Brett-Variablen auf ihre Default-Werte zurück.
     /// </summary>
-    public void ResetBoard()
+    public static void ResetBoard()
     {
         SetSquare64(new int[64]);
         SetWhiteToMove(true);
         SetEnPassantSquare(-1);
     }
 
-    public void MakeMove(Move move)
+    public static void MakeMove(Move move)
     {
-        // Update piece position
+        // Position der Figuren
         int piece = Square120[move.StartSquare];
         int position = Array.IndexOf(piecesList[piece], move.StartSquare);
         piecesList[piece][position] = move.TargetSquare;
 
-        if (move.Capture == 1)
+        if (move.Type == 1)
         {
             int enemyPiece = Square120[move.TargetSquare];
             int enemyPosition = Array.IndexOf(piecesList[enemyPiece], move.TargetSquare);
             piecesList[enemyPiece][enemyPosition] = 0;
         }
 
+        // Aktualisiert die Rochaderechte
+        UpdateCastlePermissions(move, piece);
+
+        // Rochade
+        if (move.Type == 3) Castle(move, true);
+        if (move.Type == 4) Castle(move, false);
+
+        // Verwandlung
         if (move.Promotion != -1)
         {
-            // Setzt die Position des umwandelnden Bauern zurück.
-            piecesList[piece][position] = 0;
-
-            // Setzt die Position für die umwandelte Figur.
-            for (int i = 0; i < piecesList[move.Promotion].Length; i++)
-            {
-                if (piecesList[move.Promotion][i] == 0)
-                {
-                    piecesList[move.Promotion][i] = move.TargetSquare;
-                    break;
-                }
-            }
+            Promotion(move, piece, position);
         }
 
-        // Target Square
+        // Zielfeld
         Square120[move.TargetSquare] = (move.Promotion == -1) ? Square120[move.StartSquare] : move.Promotion;
 
-        // Start Square
+        // Startfeld
         Square120[move.StartSquare] = 0;
 
-        // En Passant Capture
-        if (move.Capture == 2)
+        // En Passant Schlag
+        if (move.Type == 2)
         {
-            int enPasSq = EnPassantSquare;
-            enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
-
-            // Update captured pawn position
-            int pos = Array.IndexOf(piecesList[Square120[enPasSq]], enPasSq);
-            piecesList[Square120[enPasSq]][pos] = 0;
-
-            Square120[enPasSq] = 0;
+            EnPassant(move);
         }
 
         // En Passant Square
@@ -326,5 +314,95 @@ public class Board
 
         // Player to move
         WhiteToMove = !WhiteToMove;
+    }
+
+    private static void UpdateCastlePermissions(Move move, int piece)
+    {
+        if (Piece.IsType(piece, Piece.KING))
+        {
+            if (Piece.IsColor(piece, Piece.WHITE))
+            {
+                WhiteCastleKingside = false;
+                WhiteCastleQueenside = false;
+            }
+            else
+            {
+                BlackCastleKingside = false;
+                BlackCastleQueenside = false;
+            }
+        }
+        if (Piece.IsType(piece, Piece.ROOK))
+        {
+            if (Piece.IsColor(piece, Piece.WHITE))
+            {
+                if (move.StartSquare == 91)
+                    WhiteCastleQueenside = false;
+                else if (move.StartSquare == 98)
+                    WhiteCastleKingside = false;
+            }
+            else
+            {
+                if (move.StartSquare == 21)
+                    BlackCastleQueenside = false;
+                else if (move.StartSquare == 28)
+                    BlackCastleKingside = false;
+            }
+        }
+    }
+
+    private static void Castle(Move move, bool kingside)
+    {
+        int oldRookSq;
+        int newRookSq;
+
+        if (kingside)
+        {
+            oldRookSq = move.StartSquare + 3;
+            newRookSq = move.StartSquare + 1;
+        }
+        else
+        {
+            oldRookSq = move.StartSquare - 4;
+            newRookSq = move.StartSquare - 1;
+        }
+
+        // Figurenposition des Turms
+        int rook = Square120[oldRookSq];
+        int position = Array.IndexOf(piecesList[rook], oldRookSq);
+        piecesList[rook][position] = newRookSq;
+
+        // Zielfeld des Turms
+        Square120[newRookSq] = Square120[oldRookSq];
+
+        // Startfeld des Turms
+        Square120[oldRookSq] = 0;
+    }
+
+    private static void Promotion(Move move, int piece, int position)
+    {
+        // Setzt die Position des umwandelnden Bauern zurück.
+        piecesList[piece][position] = 0;
+
+        // Setzt die Position fuer die umgewandelte Figur.
+        for (int i = 0; i < piecesList[move.Promotion].Length; i++)
+        {
+            if (piecesList[move.Promotion][i] == 0)
+            {
+                piecesList[move.Promotion][i] = move.TargetSquare;
+                break;
+            }
+        }
+    }
+
+    private static void EnPassant(Move move)
+    {
+        int enPasSq = EnPassantSquare;
+        enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
+
+        // Update captured pawn position
+        int pos = Array.IndexOf(piecesList[Square120[enPasSq]], enPasSq);
+        piecesList[Square120[enPasSq]][pos] = 0;
+
+        Square120[enPasSq] = 0;
     }
 }

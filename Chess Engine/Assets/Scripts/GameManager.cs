@@ -16,7 +16,6 @@ public class GameManager : MonoBehaviour
     // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
 
     public static GameManager instance;
-    public Board board = new();
 
     [Header("Windows")]
     public GameObject details;
@@ -55,8 +54,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        board.Initialize();
-        square120 = board.GetSquare120();
+        Board.Initialize();
+        square120 = Board.GetSquare120();
 
         LoadFenPosition(startFEN);
     }
@@ -99,16 +98,16 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-            board.SetSquare64(square64);
+            Board.SetSquare64(square64);
             BoardGeneration.instance.GeneratePieces(square64);
 
             // Definiert den Spieler, welcher als nächstes Spielen darf.
-            if (fenToMove == "w") board.SetWhiteToMove(true);
-            else if (fenToMove == "b") board.SetWhiteToMove(false);
+            if (fenToMove == "w") Board.SetWhiteToMove(true);
+            else if (fenToMove == "b") Board.SetWhiteToMove(false);
             else UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
 
             // Verarbeitet die Rochaderechte der Position.
-            board.SetCastlePermissions(fenCastle);
+            Board.SetCastlePermissions(fenCastle);
         }
         catch
         {
@@ -117,6 +116,64 @@ public class GameManager : MonoBehaviour
             Error.instance.OnError();
             LoadFenPosition(startFEN);
         }
+    }
+
+    public void StoreFenPosition()
+    {
+        square64 = Board.GetSquare64();
+
+        int emptySquares = 0;
+        int sq = -1;
+        string position = "";
+
+        foreach (int square in square64)
+        {
+            sq++;
+
+            if (sq != 0 && sq % 8 == 0)
+            {
+                if (emptySquares != 0)
+                {
+                    position += emptySquares.ToString();
+                    emptySquares = 0;
+                }
+                position += '/';
+            }
+
+            if (square == 0)
+            {
+                emptySquares++;
+                continue;
+            }
+
+            char piece = Piece.CharFromPieceValue(square);
+            if (piece != ' ')
+            {
+                if (emptySquares != 0)
+                {
+                    position += emptySquares.ToString();
+                    emptySquares = 0;
+                }
+                position += piece;
+
+            }
+        }
+        if (emptySquares != 0)
+        {
+            position += emptySquares.ToString();
+        }
+        position += ' ';
+
+        position += Board.GetWhiteToMove() ? 'w' : 'b';
+        position += ' ';
+
+        bool[] castlePermissions = Board.GetCastlePermissions();
+        if (castlePermissions[0]) position += 'K';
+        if (castlePermissions[1]) position += 'Q';
+        if (castlePermissions[2]) position += 'k';
+        if (castlePermissions[3]) position += 'q';
+
+        UnityEngine.Debug.Log(position);
     }
 
     #region Buttons
@@ -156,6 +213,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void MainMenu()
     {
+        StoreFenPosition();
         SceneManager.LoadScene(0);
     }
 
@@ -164,7 +222,7 @@ public class GameManager : MonoBehaviour
     void ResetBoard()
     {
         // Brett-Variablen zuruecksetzen
-        board.ResetBoard();
+        Board.ResetBoard();
 
         // Setzt die grafische Repraesentierung der Figuren zurueck.
         BoardGeneration.instance.ResetBoard();
@@ -177,8 +235,8 @@ public class GameManager : MonoBehaviour
     {
         if (!debugMode) return;
                 
-        square64 = board.GetSquare64From120();
-        board.DebugPieceLocation();
+        square64 = Board.GetSquare64From120();
+        Board.DebugPieceLocation();
         
         // Loescht die alten Zeilen mit Informationen zu einem Feld
         for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
@@ -217,7 +275,7 @@ public class GameManager : MonoBehaviour
         }
 
         // Definiert den Spieler, welcher als naechstes Spielen kann
-        sideToMove.text = "Player to move: <b>" + (board.GetWhiteToMove() ? "White </b>" : "Black </b>");
+        sideToMove.text = "Player to move: <b>" + (Board.GetWhiteToMove() ? "White </b>" : "Black </b>");
 
         details.SetActive(true);
 
@@ -229,12 +287,12 @@ public class GameManager : MonoBehaviour
             Text[] texts = go.transform.GetChild(1).GetComponentsInChildren<Text>();
             texts[0].text = k.ToString();
             texts[1].text = square64[k].ToString();
-            texts[2].text = board.ConvertIndex64To120(k).ToString();
+            texts[2].text = Board.ConvertIndex64To120(k).ToString();
             go.transform.GetChild(1).gameObject.SetActive(true);
             k++;
         }
 
-        bool[] permissions = board.GetCastlePermissions();
+        bool[] permissions = Board.GetCastlePermissions();
         UnityEngine.Debug.Log("-------- Castle Permissions --------");
         foreach (bool b in permissions)
         {
@@ -268,7 +326,7 @@ public class GameManager : MonoBehaviour
             // Aktiviert die grafische Visualisierung der moeglichen Felder
             int targetSquare = move.TargetSquare;
             GameObject targetSquareGO = BoardGeneration.instance.squaresGO
-                [Board.instance.ConvertIndex120To64(targetSquare)];
+                [Board.ConvertIndex120To64(targetSquare)];
 
             highlightedMoves.Add(targetSquareGO);
             targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
@@ -296,7 +354,7 @@ public class GameManager : MonoBehaviour
     /// <param name="move">Den Zug, bei dem sich der Bauer verwandelt.</param>
     public void ActivatePromotionVisuals(Move move)
     {
-        bool whiteToMove = board.GetWhiteToMove();
+        bool whiteToMove = Board.GetWhiteToMove();
 
         promotion.SetActive(true);
          
@@ -327,9 +385,11 @@ public class GameManager : MonoBehaviour
 
         curMove.Promotion = pieceColor | pieceType;
 
-        SquareSlot sqSlot = boardContainer.transform.GetChild(board.ConvertIndex120To64(curMove.TargetSquare))
+        SquareSlot sqSlot = boardContainer.transform.GetChild(Board.ConvertIndex120To64(curMove.TargetSquare))
                             .GetComponentInChildren<SquareSlot>();
 
         sqSlot.Move(sqSlot.curPromotionPointerDrag, curMove);
+
+        DeactivateMoveVisualisation();
     }
 }
