@@ -34,11 +34,12 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             Move curMove = new(oldSlotNum, slotNum);
 
             // Ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
-            if (!GameManager.instance.possibleMoves.Any(
-                m => m.StartSquare == curMove.StartSquare && m.TargetSquare == curMove.TargetSquare)) return;
+            List<Move> possibleMoves = GameManager.instance.GetPossibleMoves();
+            if (!possibleMoves.Any(m => m.StartSquare == curMove.StartSquare && 
+                                                             m.TargetSquare == curMove.TargetSquare)) return;
 
             // Laedt den gegebenen Zug
-            Move move = GameManager.instance.possibleMoves.Find(m => m.StartSquare == oldSlotNum && m.TargetSquare == slotNum);
+            Move move = possibleMoves.Find(m => m.StartSquare == oldSlotNum && m.TargetSquare == slotNum);
             
             if (move.Promotion != -1)
             {
@@ -80,7 +81,10 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         Board.MakeMove(move);
 
         // Stellt sicher, dass der DebugMode verlassen wird
-        GameManager.instance.Debug();
+        GameManager.instance.ActivateDebugMode();
+
+        // Aktualisiert die Move History
+        GameManager.instance.UpdateMoveHistory(move);
     }
 
     void EnPassant(Move move)

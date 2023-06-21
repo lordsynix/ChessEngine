@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using static MoveGenerator;
 
@@ -10,18 +11,23 @@ using static MoveGenerator;
 /// </summary>
 public static class Board
 {
+    private static int MoveCount = 0;
+
     private static int[] Square64;
     private static int[] Square120;
 
-    public static bool WhiteToMove = true;
-    public static int EnPassantSquare = -1;
+    private static bool WhiteToMove = true;
+    private static int EnPassantSquare = -1;
 
-    public static bool WhiteCastleKingside = false;
-    public static bool WhiteCastleQueenside = false;
-    public static bool BlackCastleKingside = false;
-    public static bool BlackCastleQueenside = false;
+    private static bool WhiteCastleKingside = false;
+    private static bool WhiteCastleQueenside = false;
+    private static bool BlackCastleKingside = false;
+    private static bool BlackCastleQueenside = false;
 
-    public static List<int[]> piecesList = new();
+    private static List<int[]> PiecesList = new();
+    private static bool generatedPiecesList = false;
+
+    private static Position CurrentPosition;
 
     #region SETTER AND GETTER
 
@@ -44,7 +50,7 @@ public static class Board
         }
         Square64 = s;
         Square120 = GetSquare120From64();
-        piecesList = GetPieceLocation();
+        PiecesList = GetPieceLocation();
     }
 
     /// <summary>
@@ -66,7 +72,7 @@ public static class Board
         }
         Square120 = s;
         Square64 = GetSquare64From120();
-        piecesList = GetPieceLocation();
+        PiecesList = GetPieceLocation();
     }
 
     /// <summary>
@@ -123,6 +129,11 @@ public static class Board
             }
             else Error.instance.OnError();
         }
+    }
+
+    public static int GetMoveCount()
+    {
+        return MoveCount;
     }
 
     #endregion
@@ -214,38 +225,28 @@ public static class Board
     /// </summary>
     public static List<int[]> GetPieceLocation()
     {
-        piecesList = Piece.GeneratePiecesList();
+        if (generatedPiecesList) return PiecesList;
+
+        // Generiert eine Liste von int[] fuer jede Figurenart, in welchen die Position der jeweiligen Figur gespeichert werden.
+        PiecesList = Piece.GeneratePiecesList();
 
         for (int sq = 0; sq < Square64.Length; sq++)
         {
             int value = Square64[sq];
             if (value == Piece.NONE) continue;
 
-            for (int i = 0; i < piecesList[value].Length; i++)
+            for (int i = 0; i < PiecesList[value].Length; i++)
             {
-                if (piecesList[value][i] == 0)
+                // Ueberschreibt den default Zustand, bei welchem alle Positionen 0 sind.
+                if (PiecesList[value][i] == 0)
                 {
-                    piecesList[value][i] = ConvertIndex64To120(sq);
+                    PiecesList[value][i] = ConvertIndex64To120(sq);
                     break;
                 }
             }
         }
 
-        return piecesList;
-    }
-
-    public static void DebugPieceLocation()
-    {
-        for (int i = 0; i < piecesList.Count; i++)
-        {
-            int[] array = piecesList[i];
-            Debug.Log("-------- Piece " + i + " --------");
-            for (int k = 0; k < array.Length; k++)
-            {
-                if (array[k] == 0) continue;
-                Debug.Log(k + " value: " + array[k]);
-            }
-        }
+        return PiecesList;
     }
 
     #endregion
@@ -274,14 +275,14 @@ public static class Board
     {
         // Position der Figuren
         int piece = Square120[move.StartSquare];
-        int position = Array.IndexOf(piecesList[piece], move.StartSquare);
-        piecesList[piece][position] = move.TargetSquare;
+        int position = Array.IndexOf(PiecesList[piece], move.StartSquare);
+        PiecesList[piece][position] = move.TargetSquare;
 
         if (move.Type == 1)
         {
             int enemyPiece = Square120[move.TargetSquare];
-            int enemyPosition = Array.IndexOf(piecesList[enemyPiece], move.TargetSquare);
-            piecesList[enemyPiece][enemyPosition] = 0;
+            int enemyPosition = Array.IndexOf(PiecesList[enemyPiece], move.TargetSquare);
+            PiecesList[enemyPiece][enemyPosition] = 0;
         }
 
         // Aktualisiert die Rochaderechte
@@ -299,9 +300,11 @@ public static class Board
 
         // Zielfeld
         Square120[move.TargetSquare] = (move.Promotion == -1) ? Square120[move.StartSquare] : move.Promotion;
+        Square64[ConvertIndex120To64(move.TargetSquare)] = Square120[move.TargetSquare];
 
         // Startfeld
         Square120[move.StartSquare] = 0;
+        Square64[ConvertIndex120To64(move.StartSquare)] = 0;
 
         // En Passant Schlag
         if (move.Type == 2)
@@ -314,6 +317,54 @@ public static class Board
 
         // Player to move
         WhiteToMove = !WhiteToMove;
+
+        // Erhoeht die Anzahl der gespielten Zuege
+        MoveCount++;
+
+        GameManager.instance.SetPossibleMoves(GenerateMoves());
+    }
+
+    public static void MakePseudoMove(Move move)
+    {
+        StorePosition();
+        MakeMove(move);
+        RestorePosition();
+    }
+
+    public static void CalculateMoves(List<Move> moves)
+    {
+        float startTime = Time.realtimeSinceStartup;
+        StorePosition();
+
+        int i = 0;
+        foreach (Move move in moves)
+        {
+            MakeMove(move);
+            int currentEvaluation = Engine.Evaluate();
+            RestorePosition();
+
+            Debug.Log($"Evaluation for {i}. Move: {currentEvaluation} in {(Time.realtimeSinceStartup - startTime) * 1000} ms");
+            i++;
+        }
+    }
+      
+    public static void StorePosition()
+    {
+        CurrentPosition = new(Square64, Square120, WhiteToMove, EnPassantSquare, WhiteCastleKingside, 
+                              WhiteCastleQueenside, BlackCastleKingside, BlackCastleQueenside, PiecesList);
+    }
+
+    public static void RestorePosition()
+    {
+        Square64 = CurrentPosition.Square64;
+        Square120 = CurrentPosition.Square120;
+        WhiteToMove = CurrentPosition.WhiteToMove;
+        EnPassantSquare = CurrentPosition.EnPassantSquare;
+        WhiteCastleKingside = CurrentPosition.WhiteCastleKingside;
+        WhiteCastleQueenside = CurrentPosition.WhiteCastleQueenside;
+        BlackCastleKingside = CurrentPosition.BlackCastleKingside;
+        BlackCastleQueenside = CurrentPosition.BlackCastleQueenside;
+        PiecesList = CurrentPosition.PiecesList;
     }
 
     private static void UpdateCastlePermissions(Move move, int piece)
@@ -368,8 +419,8 @@ public static class Board
 
         // Figurenposition des Turms
         int rook = Square120[oldRookSq];
-        int position = Array.IndexOf(piecesList[rook], oldRookSq);
-        piecesList[rook][position] = newRookSq;
+        int position = Array.IndexOf(PiecesList[rook], oldRookSq);
+        PiecesList[rook][position] = newRookSq;
 
         // Zielfeld des Turms
         Square120[newRookSq] = Square120[oldRookSq];
@@ -381,14 +432,14 @@ public static class Board
     private static void Promotion(Move move, int piece, int position)
     {
         // Setzt die Position des umwandelnden Bauern zurück.
-        piecesList[piece][position] = 0;
+        PiecesList[piece][position] = 0;
 
         // Setzt die Position fuer die umgewandelte Figur.
-        for (int i = 0; i < piecesList[move.Promotion].Length; i++)
+        for (int i = 0; i < PiecesList[move.Promotion].Length; i++)
         {
-            if (piecesList[move.Promotion][i] == 0)
+            if (PiecesList[move.Promotion][i] == 0)
             {
-                piecesList[move.Promotion][i] = move.TargetSquare;
+                PiecesList[move.Promotion][i] = move.TargetSquare;
                 break;
             }
         }
@@ -400,9 +451,10 @@ public static class Board
         enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
 
         // Update captured pawn position
-        int pos = Array.IndexOf(piecesList[Square120[enPasSq]], enPasSq);
-        piecesList[Square120[enPasSq]][pos] = 0;
+        int pos = Array.IndexOf(PiecesList[Square120[enPasSq]], enPasSq);
+        PiecesList[Square120[enPasSq]][pos] = 0;
 
         Square120[enPasSq] = 0;
     }
+
 }

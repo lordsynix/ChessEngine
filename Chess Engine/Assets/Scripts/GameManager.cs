@@ -12,32 +12,39 @@ using static MoveGenerator;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    public const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // TODO: was ist die bedeutung dieses strings?
-    // public const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
+    private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
+    // private const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
 
     public static GameManager instance;
 
     [Header("Windows")]
-    public GameObject details;
-    public GameObject promotion;
-    public GameObject boardContainer;
+    public GameObject debugWindow;
+    public GameObject promotionWindow;
+    public GameObject boardWindow;
+    public GameObject historyWindow;
+
+    [Header("Board")]
+    public GameObject moveInformationPrefab;
+    public GameObject moveInformationHolder;
+    public Text sideToMove;
 
     [Header("Debug Tools")]
     public GameObject squareInformationPrefab;
     public GameObject squareInformationHolder;
     public InputField fenInputField;
-    public Text sideToMove;
+    public Text debugSideToMove;
+    public Text castlePermissions;
     
-    [HideInInspector] public bool debugMode = false;
+    [HideInInspector] private bool debugMode = false;
     
-    [HideInInspector] public int[] square64 = null;
-    [HideInInspector] public int[] square120 = null;
+    [HideInInspector] private int[] square64 = null;
+    [HideInInspector] private int[] square120 = null;
 
-    [HideInInspector] public List<GameObject> highlightedMoves;
-    [HideInInspector] public List<Move> possibleMoves;
+    [HideInInspector] private List<GameObject> highlightedMoves;
+    [HideInInspector] private List<Move> possibleMoves;
 
     private Move curMove;
-    private Dictionary<char, int> pieceTypeFromSymbol = new()
+    private readonly Dictionary<char, int> pieceTypeFromSymbol = new()
     {
         ['k'] = Piece.KING,
         ['p'] = Piece.PAWN,
@@ -46,6 +53,8 @@ public class GameManager : MonoBehaviour
         ['r'] = Piece.ROOK,
         ['q'] = Piece.QUEEN
     };
+
+    #region ESSENTIALS
 
     private void Awake()
     {
@@ -57,14 +66,38 @@ public class GameManager : MonoBehaviour
         Board.Initialize();
         square120 = Board.GetSquare120();
 
+        ResetHighlightedMoves();
         LoadFenPosition(startFEN);
     }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape)) MainMenu();
     }
 
-    // FEN String
+    #endregion
+
+    #region GETTER AND SETTER
+
+    public void ResetHighlightedMoves()
+    {
+        highlightedMoves = new();
+    }
+
+    public List<Move> GetPossibleMoves()
+    {
+        return possibleMoves;
+    }
+
+    public void SetPossibleMoves(List<Move> moves)
+    {
+        possibleMoves = moves;
+    }
+
+    #endregion
+
+    #region FEN
+
     public void LoadFenPosition(string fen)
     {
         try
@@ -109,13 +142,15 @@ public class GameManager : MonoBehaviour
             // Verarbeitet die Rochaderechte der Position.
             Board.SetCastlePermissions(fenCastle);
         }
-        catch
+        catch (Exception ex)
         {
-            // TODO Send Exception
+            UnityEngine.Debug.LogException(ex);
             fenInputField.text = "Invalid position";
             Error.instance.OnError();
             LoadFenPosition(startFEN);
         }
+
+        possibleMoves = GenerateMoves();
     }
 
     public void StoreFenPosition()
@@ -173,10 +208,12 @@ public class GameManager : MonoBehaviour
         if (castlePermissions[2]) position += 'k';
         if (castlePermissions[3]) position += 'q';
 
-        UnityEngine.Debug.Log(position);
+        Debug.Log(position);
     }
 
-    #region Buttons
+    #endregion
+
+    #region BUTTONS
 
     /// <summary>
     /// Die Methode <c>OnGeneratePosition</c> übermittelt den eingegebenen 
@@ -204,8 +241,8 @@ public class GameManager : MonoBehaviour
     public void DebugButton()
     {
         debugMode = !debugMode; // TODO: ich wuerde hier einen kommentar einfuegen warum du das so machst
-        if (debugMode) Debug(); // ich finde den code lesbarer, wenn ein if auf 2 zeilen verteilt wird, auch wenn danach nur eine zeile folgt
-        else ExitDebug();
+        if (debugMode) ActivateDebugMode(); // ich finde den code lesbarer, wenn ein if auf 2 zeilen verteilt wird, auch wenn danach nur eine zeile folgt
+        else DeactivateDebugMode();
     }
     
     /// <summary>
@@ -217,29 +254,43 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    #endregion
-    
-    void ResetBoard()
+    public void PromotionPiece(string strPiece)
     {
-        // Brett-Variablen zuruecksetzen
-        Board.ResetBoard();
+        promotionWindow.transform.GetChild(1).gameObject.SetActive(false);
+        promotionWindow.transform.GetChild(2).gameObject.SetActive(false);
+        promotionWindow.SetActive(false);
 
-        // Setzt die grafische Repraesentierung der Figuren zurueck.
-        BoardGeneration.instance.ResetBoard();
+        char symbol = strPiece.ToCharArray()[0];
+
+        int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
+        int pieceColor = char.IsUpper(symbol) ? Piece.WHITE : Piece.BLACK;
+
+        curMove.Promotion = pieceColor | pieceType;
+
+        SquareSlot sqSlot = boardWindow.transform.GetChild(Board.ConvertIndex120To64(curMove.TargetSquare))
+                            .GetComponentInChildren<SquareSlot>();
+
+        sqSlot.Move(sqSlot.curPromotionPointerDrag, curMove);
+
+        DeactivateMoveVisualisation();
     }
 
+    #endregion
+
+    #region VISUALS
+
     /// <summary>
-    /// Die Methode <c>Debug</c> startet den Debug Mode für Entwickler.
+    /// Die Methode <c>ActivateDebugMode</c> startet den Debug Mode für Entwickler.
     /// </summary>
-    public void Debug()
+    public void ActivateDebugMode()
     {
         if (!debugMode) return;
-                
+
         square64 = Board.GetSquare64From120();
-        Board.DebugPieceLocation();
-        
+        List<int[]> piecesList = Board.GetPieceLocation();
+
         // Loescht die alten Zeilen mit Informationen zu einem Feld
-        for(int i = 0; i < squareInformationHolder.transform.childCount; i++)
+        for (int i = 0; i < squareInformationHolder.transform.childCount; i++)
         {
             Destroy(squareInformationHolder.transform.GetChild(i).gameObject);
         }
@@ -254,7 +305,7 @@ public class GameManager : MonoBehaviour
             Text[] prefabTexts = newSquareInformation.GetComponentsInChildren<Text>();
             GameObject piece = newSquareInformation.transform.GetChild(2).gameObject;
             Image pieceImage = piece.GetComponent<Image>();
-            
+
             newSquareInformation.transform.SetParent(squareInformationHolder.transform);
             prefabTexts[0].text = j.ToString();
             prefabTexts[1].text = sq.ToString();
@@ -274,12 +325,22 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Definiert den Spieler, welcher als naechstes Spielen kann
-        sideToMove.text = "Player to move: <b>" + (Board.GetWhiteToMove() ? "White </b>" : "Black </b>");
+        // Definiert den Spieler, welcher als naechstes Spielen kann.
+        debugSideToMove.text = "Player to move: <b>" + (Board.GetWhiteToMove() ? "White </b>" : "Black </b>");
 
-        details.SetActive(true);
+        // Listet die Rochaderechte auf.
+        string s = "Castle Permissions: <b>";
+        bool[] permissions = Board.GetCastlePermissions();
+        if (permissions[0]) s += 'K';
+        if (permissions[1]) s += 'Q';
+        if (permissions[2]) s += 'k';
+        if (permissions[3]) s += 'q';
+        castlePermissions.text = s + "</b>";
 
-        // Visualisiert Informationen ueber ein Feld auf dem Brett
+        historyWindow.SetActive(false);
+        debugWindow.SetActive(true);
+
+        // Visualisiert Informationen ueber ein Feld auf dem Brett.
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
         int k = 0;
         foreach (GameObject go in squaresGO)
@@ -288,22 +349,30 @@ public class GameManager : MonoBehaviour
             texts[0].text = k.ToString();
             texts[1].text = square64[k].ToString();
             texts[2].text = Board.ConvertIndex64To120(k).ToString();
+            texts[3].text = 0.ToString();
             go.transform.GetChild(1).gameObject.SetActive(true);
             k++;
         }
 
-        bool[] permissions = Board.GetCastlePermissions();
-        UnityEngine.Debug.Log("-------- Castle Permissions --------");
-        foreach (bool b in permissions)
+        for (int pieceType = Piece.WHITE + 1; pieceType < Piece.BLACK + 7; pieceType++)
         {
-            UnityEngine.Debug.Log(b);
+            if (piecesList[pieceType].Length == 0) continue;
+
+            foreach (int startSquare in piecesList[pieceType])
+            {
+                if (startSquare == 0) continue;
+                Text[] texts = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(startSquare)].transform.GetChild(1).
+                    GetComponentsInChildren<Text>();
+                texts[3].text = Piece.CharFromPieceValue(pieceType).ToString();
+            }
         }
     }
 
-    public void ExitDebug()
+    public void DeactivateDebugMode()
     {
         // Deaktiviert Details Scrollbar
-        details.SetActive(false);
+        debugWindow.SetActive(false);
+        historyWindow.SetActive(true);
 
         // Deaktiviert die grafischen Informationen fuer ein Feld
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
@@ -317,16 +386,17 @@ public class GameManager : MonoBehaviour
     /// Die Methode <c>ActivateMoveVisualization</c> aktiviert die grafische 
     /// Visualisierung aller verfügbaren Züge für die ausgewählte Figur.
     /// </summary>
-    public void ActivateMoveVisualization(List<Move> moves)
+    public void ActivateMoveVisualization(int startSquare)
     {
-        possibleMoves = moves;
+        if (possibleMoves.Count == 0 || possibleMoves == null) Debug.LogWarning("No possible moves assigned");
 
-        foreach (Move move in moves)
+        foreach (Move move in possibleMoves)
         {
+            if (move.StartSquare != startSquare) continue;
+
             // Aktiviert die grafische Visualisierung der moeglichen Felder
             int targetSquare = move.TargetSquare;
-            GameObject targetSquareGO = BoardGeneration.instance.squaresGO
-                [Board.ConvertIndex120To64(targetSquare)];
+            GameObject targetSquareGO = BoardGeneration.instance.squaresGO [Board.ConvertIndex120To64(targetSquare)];
 
             highlightedMoves.Add(targetSquareGO);
             targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
@@ -356,40 +426,68 @@ public class GameManager : MonoBehaviour
     {
         bool whiteToMove = Board.GetWhiteToMove();
 
-        promotion.SetActive(true);
-         
-        if (whiteToMove) promotion.transform.GetChild(1).gameObject.SetActive(true);
-        else promotion.transform.GetChild(2).gameObject.SetActive(true);
+        promotionWindow.SetActive(true);
+        historyWindow.SetActive(false);
+
+        if (whiteToMove) promotionWindow.transform.GetChild(1).gameObject.SetActive(true);
+        else promotionWindow.transform.GetChild(2).gameObject.SetActive(true);
 
         curMove = move;
     }
 
     public void DeactivatePromotionVisuals()
     {
-        promotion.transform.GetChild(1).gameObject.SetActive(false);
-        promotion.transform.GetChild(2).gameObject.SetActive(false);
+        promotionWindow.transform.GetChild(1).gameObject.SetActive(false);
+        promotionWindow.transform.GetChild(2).gameObject.SetActive(false);
 
-        promotion.SetActive(false);
+        promotionWindow.SetActive(false);
+        historyWindow.SetActive(true);
     }
 
-    public void PromotionPiece(string strPiece)
+    #endregion
+
+    void ResetBoard()
     {
-        promotion.transform.GetChild(1).gameObject.SetActive(false);
-        promotion.transform.GetChild(2).gameObject.SetActive(false);
-        promotion.SetActive(false);
+        // Brett-Variablen zuruecksetzen
+        Board.ResetBoard();
 
-        char symbol = strPiece.ToCharArray()[0];
+        // Setzt die grafische Repraesentierung der Figuren zurueck.
+        BoardGeneration.instance.ResetBoard();
 
-        int pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
-        int pieceColor = char.IsUpper(symbol) ? Piece.WHITE : Piece.BLACK;
+        // Setzt die Move History zurueck
+        for (int i = 0; i < moveInformationHolder.transform.childCount; i++)
+        {
+            Destroy(moveInformationHolder.transform.GetChild(i).gameObject);
+        }
 
-        curMove.Promotion = pieceColor | pieceType;
-
-        SquareSlot sqSlot = boardContainer.transform.GetChild(Board.ConvertIndex120To64(curMove.TargetSquare))
-                            .GetComponentInChildren<SquareSlot>();
-
-        sqSlot.Move(sqSlot.curPromotionPointerDrag, curMove);
-
+        // Setzt die Benutzeroberflaeche zurueck.
+        DeactivateDebugMode();
         DeactivateMoveVisualisation();
+        DeactivatePromotionVisuals();
+
+        ResetHighlightedMoves();
     }
+
+    public void UpdateMoveHistory(Move move)
+    {
+        square120 = Board.GetSquare120();
+
+        // Iniitiert eine neue Zeilen mit Informationen zu einem Zug
+        GameObject newMoveInformation = Instantiate(moveInformationPrefab, moveInformationHolder.transform);
+
+        Text[] prefabTexts = newMoveInformation.GetComponentsInChildren<Text>();
+        Image piece = newMoveInformation.transform.GetChild(1).GetComponent<Image>();
+        int moveCount = Board.GetMoveCount();
+
+        prefabTexts[0].text = moveCount.ToString();
+        prefabTexts[1].text = move.StartSquare.ToString();
+        prefabTexts[2].text = move.TargetSquare.ToString();
+
+        piece.sprite = BoardGeneration.instance.pieces[square120[move.TargetSquare]];
+
+        if (moveCount > 7) (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 0);
+
+        sideToMove.text = Board.GetWhiteToMove() ? "Side to move: <b>White</b>" : "Side to move: <b>Black</b>";
+    }
+
 }

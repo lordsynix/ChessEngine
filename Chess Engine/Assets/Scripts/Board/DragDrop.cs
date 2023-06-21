@@ -29,22 +29,16 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         canvasGroup = GetComponent<CanvasGroup>();
         startPosition = rectTransform.anchoredPosition;
         myCanvas = GetComponent<Canvas>();
-        GameManager.instance.highlightedMoves = new();
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        int[] square120 = Board.GetSquare120();
+        // Aktiviert die Visualisierung aller möglichen Züge
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
 
-        // Generiert alle Zuege fuer die ausgewaehlte Figur
-        List<Move> moves = GenerateMovesForPiece(slotNum, square120[slotNum]);
-        if (moves != null)
-        {
-            // Aktiviert die Visualisierung aller möglichen Züge
-            GameManager.instance.DeactivateMoveVisualisation();
-            GameManager.instance.ActivateMoveVisualization(moves);
-        }
+        GameManager.instance.DeactivateMoveVisualisation();
+        GameManager.instance.ActivateMoveVisualization(slotNum);
+       
     }
 
     public void OnBeginDrag(PointerEventData eventData)

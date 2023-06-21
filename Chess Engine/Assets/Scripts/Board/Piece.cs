@@ -104,6 +104,18 @@ public static class Piece
     }
 
     /// <summary>
+    /// Die Funktion <c>OpponentColor</c> gibt ausgehend von einer Farbe die gegnerische Farbe zurueck.
+    /// </summary>
+    /// <param name="color">Die aktuelle Farbe</param>
+    /// <returns>Gibt die gegnerische Farbe zurueck</returns>
+    public static int OpponentColor(int color)
+    {
+        if (color == WHITE) return BLACK;
+        else if (color == BLACK) return WHITE;
+        else return -1;
+    }
+
+    /// <summary>
     /// Die Funktion <c>IsSlidingPiece</c> ueberprueft, ob
     /// sich eine Figur schraeg ueber das Brett bewegen kann.
     /// </summary>

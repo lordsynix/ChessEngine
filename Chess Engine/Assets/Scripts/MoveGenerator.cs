@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,7 +35,8 @@ public static class MoveGenerator
     private static int[] square120;
     private static int friendlyColor;
     private static int opponentColor;
-    
+    private static List<int[]> piecesList;
+
     public static List<Move> GenerateMovesForPiece(int startSquare, int piece)
     {
         moves = new();
@@ -75,9 +77,59 @@ public static class MoveGenerator
         return moves;
     }
 
-    public static void GenerateMoves()
+    public static List<Move> GenerateMoves()
     {
-        List<int[]> piecesList = Board.piecesList;
+        float startTime = Time.realtimeSinceStartup;
+
+        square120 = Board.GetSquare120();
+        piecesList = Board.GetPieceLocation();
+        List<Move> moves = new();
+
+        if (Board.GetWhiteToMove()) friendlyColor = Piece.WHITE;   
+        else friendlyColor = Piece.BLACK;
+            
+        for (int pieceType = friendlyColor + 1; pieceType < friendlyColor + 7; pieceType++)
+        {
+            if (piecesList[pieceType].Length == 0) continue;
+
+            foreach (int startSquare in piecesList[pieceType])
+            {
+                if (startSquare == 0) continue;
+
+                moves.AddRange(GenerateMovesForPiece(startSquare, pieceType));
+            }
+        }
+
+        Debug.Log($"{moves.Count} moves generated in {(Time.realtimeSinceStartup - startTime) * 1000} ms");
+        return moves;
+    }
+
+    public static bool GenerateResponse(Move move)
+    {
+        List<Move> responseMoves = new();
+        float startTime = Time.realtimeSinceStartup;
+
+        Board.StorePosition();
+        Board.MakeMove(move);
+        piecesList = Board.GetPieceLocation();
+        square120 = Board.GetSquare120();
+        Board.RestorePosition();
+
+        for (int pieceType = opponentColor + 1; pieceType < opponentColor + 7; pieceType++)
+        {
+            if (piecesList[pieceType].Length == 0) continue;
+
+            foreach (int piecePosition in piecesList[pieceType])
+            {
+                if (piecePosition == 0) continue;
+                
+                responseMoves.AddRange(GenerateMovesForPiece(piecePosition, pieceType));
+            }
+        }
+        
+        Debug.Log($"------ {responseMoves.Count} response moves for {move.StartSquare} : {move.TargetSquare} " +
+                  $"------ Time: {(Time.realtimeSinceStartup - startTime) * 1000} ms ------");
+        return true;
     }
 
     static void GenerateSlidingMoves (int startSquare, int piece)
@@ -126,10 +178,12 @@ public static class MoveGenerator
             // Bauernzug fuer 2 Feldern
             else if (dirIndex == 1)
             {
-                if (Piece.IsColor(friendlyColor, Piece.WHITE) && startSquare >= 81 && startSquare <= 88)
+                if (Piece.IsColor(friendlyColor, Piece.WHITE) && startSquare >= 81 
+                    && startSquare <= 88 && square120[startSquare - 10] == Piece.NONE)
                     LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece, true);
                 
-                else if (Piece.IsColor(friendlyColor, Piece.BLACK) && startSquare >= 31 && startSquare <= 38)
+                else if (Piece.IsColor(friendlyColor, Piece.BLACK) && startSquare >= 31 
+                    && startSquare <= 38 && square120[startSquare + 10] == Piece.NONE)
                     LegitimateMove(pieceOnTargetSquare, startSquare, targetSquare, piece, true);
             }
 
