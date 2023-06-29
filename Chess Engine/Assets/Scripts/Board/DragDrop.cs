@@ -38,7 +38,14 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
         GameManager.instance.DeactivateMoveVisualisation();
         GameManager.instance.ActivateMoveVisualization(slotNum);
-       
+
+        if (GameManager.instance.latestSlotNum != slotNum)
+        {
+            GetComponent<SquareSlot>().OnDrop(eventData);
+
+            GameManager.instance.latestSlotNum = slotNum;
+            GameManager.instance.latestPointerData = eventData;
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)

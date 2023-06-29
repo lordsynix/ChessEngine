@@ -6,7 +6,7 @@ public class Error : MonoBehaviour
 {
     [Header("Windows")]
     public GameObject errorWindow;
-
+    
     public static Error instance;
 
     private void Awake()

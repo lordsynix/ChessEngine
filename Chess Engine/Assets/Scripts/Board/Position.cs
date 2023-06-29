@@ -1,33 +1,51 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static MoveGenerator;
 
 public class Position
 {
-    public int[] Square64;
-    public int[] Square120;
+    public bool GameOver = false;
 
-    public bool WhiteToMove = true;
-    public int EnPassantSquare = -1;
+    public List<Position> ChildPositions;
 
-    public bool WhiteCastleKingside = false;
-    public bool WhiteCastleQueenside = false;
-    public bool BlackCastleKingside = false;
-    public bool BlackCastleQueenside = false;
+    public List<Move> PossibleMoves;
+    public List<int[]> PiecesList;
 
-    public List<int[]> PiecesList = new();
+    public int FriendlyColor;
+    public int OpponentColor;
 
-    public Position(int[] square64, int[] square120, bool whiteToMove, int enPassantSquare, bool whiteCastleKingside,
-                    bool whiteCastleQueenside, bool blackCastleKingside, bool blackCastleQueenside, List<int[]> piecesList)
+    public Position(List<Move> moves, List<int[]> piecesList, int friendlyColor, int opponentColor)
     {
-        Square64 = square64;
-        Square120 = square120;
-        WhiteToMove = whiteToMove;
-        EnPassantSquare = enPassantSquare;
-        WhiteCastleKingside = whiteCastleKingside;
-        WhiteCastleQueenside = whiteCastleQueenside;
-        BlackCastleKingside = blackCastleKingside;
-        BlackCastleQueenside = blackCastleQueenside;
+        PossibleMoves = moves;
         PiecesList = piecesList;
+        FriendlyColor = friendlyColor;
+        OpponentColor = opponentColor;
+
+        GameOver = IsOver();
     }
+
+    public List<Position> GetChildPositions()
+    {
+        ChildPositions = new();
+
+        foreach (Move move in PossibleMoves)
+        {
+            Board.MakeMove(move);
+
+            FriendlyColor = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
+            OpponentColor = Piece.OpponentColor(FriendlyColor);
+            ChildPositions.Add(new(GenerateMoves(), Board.GetPieceLocation(), FriendlyColor, OpponentColor));
+
+            Board.UnmakeMove(move);
+        }
+
+        return ChildPositions;
+    }
+
+    private bool IsOver()
+    {
+        return false;
+    }
+
 }

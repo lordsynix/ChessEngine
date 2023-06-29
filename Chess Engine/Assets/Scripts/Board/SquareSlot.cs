@@ -32,7 +32,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
 
             Move curMove = new(oldSlotNum, slotNum);
-
+            Debug.Log($"current move from {curMove.StartSquare} to {curMove.TargetSquare}");
             // Ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
             List<Move> possibleMoves = GameManager.instance.GetPossibleMoves();
             if (!possibleMoves.Any(m => m.StartSquare == curMove.StartSquare && 
@@ -78,7 +78,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         else if (move.Type == 1) FindObjectOfType<AudioManager>().Play("move_capture");
 
         // Aktualisiert die Brett-Variablen
-        Board.MakeMove(move);
+        Board.MakeMove(move, true);
 
         // Stellt sicher, dass der DebugMode verlassen wird
         GameManager.instance.ActivateDebugMode();

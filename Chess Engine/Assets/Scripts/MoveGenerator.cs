@@ -47,14 +47,14 @@ public static class MoveGenerator
             friendlyColor = Piece.WHITE;
             opponentColor = Piece.BLACK;
             if (piece > Piece.BLACK)
-                return null;
+                Debug.LogWarning("The given piece doesn't match with the current color");
         }  
         else
         {
             friendlyColor = Piece.BLACK;
             opponentColor = Piece.WHITE;
             if (piece < Piece.BLACK && piece > 0)
-                return null;
+                Debug.LogWarning("The given piece doesn't match with the current color");
         }
 
         if (Piece.IsSlidingPiece(piece))
@@ -100,36 +100,9 @@ public static class MoveGenerator
             }
         }
 
-        Debug.Log($"{moves.Count} moves generated in {(Time.realtimeSinceStartup - startTime) * 1000} ms");
+        //Debug.Log($"{moves.Count} moves generated in {(Time.realtimeSinceStartup - startTime) * 1000} ms");
+
         return moves;
-    }
-
-    public static bool GenerateResponse(Move move)
-    {
-        List<Move> responseMoves = new();
-        float startTime = Time.realtimeSinceStartup;
-
-        Board.StorePosition();
-        Board.MakeMove(move);
-        piecesList = Board.GetPieceLocation();
-        square120 = Board.GetSquare120();
-        Board.RestorePosition();
-
-        for (int pieceType = opponentColor + 1; pieceType < opponentColor + 7; pieceType++)
-        {
-            if (piecesList[pieceType].Length == 0) continue;
-
-            foreach (int piecePosition in piecesList[pieceType])
-            {
-                if (piecePosition == 0) continue;
-                
-                responseMoves.AddRange(GenerateMovesForPiece(piecePosition, pieceType));
-            }
-        }
-        
-        Debug.Log($"------ {responseMoves.Count} response moves for {move.StartSquare} : {move.TargetSquare} " +
-                  $"------ Time: {(Time.realtimeSinceStartup - startTime) * 1000} ms ------");
-        return true;
     }
 
     static void GenerateSlidingMoves (int startSquare, int piece)

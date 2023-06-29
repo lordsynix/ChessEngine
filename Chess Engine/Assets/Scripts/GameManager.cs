@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using static MoveGenerator;
 
@@ -14,6 +15,7 @@ public class GameManager : MonoBehaviour
 {
     private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
     // private const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
+    // private const string testFEN2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w ";
 
     public static GameManager instance;
 
@@ -22,6 +24,7 @@ public class GameManager : MonoBehaviour
     public GameObject promotionWindow;
     public GameObject boardWindow;
     public GameObject historyWindow;
+    public GameObject checkMateWindow;
 
     [Header("Board")]
     public GameObject moveInformationPrefab;
@@ -34,7 +37,10 @@ public class GameManager : MonoBehaviour
     public InputField fenInputField;
     public Text debugSideToMove;
     public Text castlePermissions;
-    
+
+    public int latestSlotNum;
+    public PointerEventData latestPointerData;
+
     [HideInInspector] private bool debugMode = false;
     
     [HideInInspector] private int[] square64 = null;
@@ -89,9 +95,9 @@ public class GameManager : MonoBehaviour
         return possibleMoves;
     }
 
-    public void SetPossibleMoves(List<Move> moves)
+    public void SetPossibleMoves()
     {
-        possibleMoves = moves;
+        possibleMoves = Engine.Search();
     }
 
     #endregion
@@ -137,7 +143,7 @@ public class GameManager : MonoBehaviour
             // Definiert den Spieler, welcher als nächstes Spielen darf.
             if (fenToMove == "w") Board.SetWhiteToMove(true);
             else if (fenToMove == "b") Board.SetWhiteToMove(false);
-            else UnityEngine.Debug.LogWarning("Please enter a valid FEN-String");
+            else Debug.LogWarning("Please enter a valid FEN-String");
 
             // Verarbeitet die Rochaderechte der Position.
             Board.SetCastlePermissions(fenCastle);
@@ -150,7 +156,7 @@ public class GameManager : MonoBehaviour
             LoadFenPosition(startFEN);
         }
 
-        possibleMoves = GenerateMoves();
+        SetPossibleMoves();
     }
 
     public void StoreFenPosition()
@@ -207,8 +213,6 @@ public class GameManager : MonoBehaviour
         if (castlePermissions[1]) position += 'Q';
         if (castlePermissions[2]) position += 'k';
         if (castlePermissions[3]) position += 'q';
-
-        Debug.Log(position);
     }
 
     #endregion
@@ -325,7 +329,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Definiert den Spieler, welcher als naechstes Spielen kann.
+        // Zeigt den Spieler an, welcher als naechstes Spielen kann.
         debugSideToMove.text = "Player to move: <b>" + (Board.GetWhiteToMove() ? "White </b>" : "Black </b>");
 
         // Listet die Rochaderechte auf.
@@ -381,6 +385,29 @@ public class GameManager : MonoBehaviour
             go.transform.GetChild(1).gameObject.SetActive(false);
         }
     }
+
+    public void UpdateMoveHistory(Move move)
+    {
+        square120 = Board.GetSquare120();
+
+        // Iniitiert eine neue Zeilen mit Informationen zu einem Zug
+        GameObject newMoveInformation = Instantiate(moveInformationPrefab, moveInformationHolder.transform);
+
+        Text[] prefabTexts = newMoveInformation.GetComponentsInChildren<Text>();
+        Image piece = newMoveInformation.transform.GetChild(1).GetComponent<Image>();
+        int moveCount = Board.GetMoveCount();
+
+        prefabTexts[0].text = moveCount.ToString();
+        prefabTexts[1].text = move.StartSquare.ToString();
+        prefabTexts[2].text = move.TargetSquare.ToString();
+
+        piece.sprite = BoardGeneration.instance.pieces[square120[move.TargetSquare]];
+
+        if (moveCount > 7) (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 0);
+
+        sideToMove.text = Board.GetWhiteToMove() ? "Side to move: <b>White</b>" : "Side to move: <b>Black</b>";
+    }
+
 
     /// <summary>
     /// Die Methode <c>ActivateMoveVisualization</c> aktiviert die grafische 
@@ -468,26 +495,11 @@ public class GameManager : MonoBehaviour
         ResetHighlightedMoves();
     }
 
-    public void UpdateMoveHistory(Move move)
+    public void CheckMate()
     {
-        square120 = Board.GetSquare120();
+        int winner = Piece.OpponentColor(Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK);
 
-        // Iniitiert eine neue Zeilen mit Informationen zu einem Zug
-        GameObject newMoveInformation = Instantiate(moveInformationPrefab, moveInformationHolder.transform);
-
-        Text[] prefabTexts = newMoveInformation.GetComponentsInChildren<Text>();
-        Image piece = newMoveInformation.transform.GetChild(1).GetComponent<Image>();
-        int moveCount = Board.GetMoveCount();
-
-        prefabTexts[0].text = moveCount.ToString();
-        prefabTexts[1].text = move.StartSquare.ToString();
-        prefabTexts[2].text = move.TargetSquare.ToString();
-
-        piece.sprite = BoardGeneration.instance.pieces[square120[move.TargetSquare]];
-
-        if (moveCount > 7) (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 0);
-
-        sideToMove.text = Board.GetWhiteToMove() ? "Side to move: <b>White</b>" : "Side to move: <b>Black</b>";
+        checkMateWindow.SetActive(true);
     }
-
+    
 }
