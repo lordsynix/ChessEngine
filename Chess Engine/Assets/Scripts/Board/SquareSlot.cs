@@ -19,37 +19,70 @@ public class SquareSlot : MonoBehaviour, IDropHandler
     private int oldSlotNum;
     private int slotNum;
 
-    public void OnDrop(PointerEventData eventData)
+    /// <summary>
+    /// Die Funktion <c>SimulateDragDropMove</c> initiiert einen Zug, welcher nur durch klicken 
+    /// auf die jeweiligen Felder gespielt wurde und nicht per "Drag and Drop".
+    /// </summary>
+    /// <param name="startSquare">Im GameManager abgespeichert. Das GameObject der bewegten Figur</param>
+    public void SimulateDragDropMove(GameObject startSquare)
     {
-        if (eventData.pointerDrag != null)
-        {
-            var pointerDrag = eventData.pointerDrag;
-
-            // Weist den Referenzen die entsprechenden Komponenten zu
-            slot = GetComponent<Image>();
-            slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
-            oldSlotNum = (int)Variables.Object(pointerDrag).Get("SquareNum");
-
-
-            Move curMove = new(oldSlotNum, slotNum);
-            Debug.Log($"current move from {curMove.StartSquare} to {curMove.TargetSquare}");
-            // Ueberprueft, ob der eingegebene Zug moeglich ist (Normaler- sowie Schlagzug)
-            List<Move> possibleMoves = GameManager.instance.GetPossibleMoves();
-            if (!possibleMoves.Any(m => m.StartSquare == curMove.StartSquare && 
-                                                             m.TargetSquare == curMove.TargetSquare)) return;
-
-            // Laedt den gegebenen Zug
-            Move move = possibleMoves.Find(m => m.StartSquare == oldSlotNum && m.TargetSquare == slotNum);
-            
-            if (move.Promotion != -1)
-            {
-                GameManager.instance.ActivatePromotionVisuals(move);
-                curPromotionPointerDrag = pointerDrag;
-            }    
-            else Move(pointerDrag, move);
-        }
+        VerifyMove(startSquare);
     }
 
+    /// <summary>
+    /// Die Funktion <c>OnDrop</c> wird von Unity beim beenden des "Drag and Drop" aufgerufen.
+    /// Initiiert einen Zug.
+    /// </summary>
+    /// <param name="eventData">Standartmaessig von Unity uebergeben, 
+    /// dient zur Ermittlung des GameObjects der bewegten Figur</param>
+    public void OnDrop(PointerEventData eventData)
+    {
+        GameObject pointerDrag = eventData.pointerDrag;
+
+        VerifyMove(pointerDrag);
+    }
+
+    /// <summary>
+    /// Die Funktion <c>VerifyMove</c> ueberprueft, ob die aktuelle Zugeingabe ein moeglicher Zug ist.
+    /// </summary>
+    /// <param name="pointerDrag">Das GameObject der bewegten Figur.</param>
+    public void VerifyMove(GameObject pointerDrag)
+    {
+        // Weist den Referenzen die entsprechenden Komponenten zu
+        slot = GetComponent<Image>();
+        slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
+        oldSlotNum = (int)Variables.Object(pointerDrag).Get("SquareNum");
+
+        // Der eingegebene Zug.
+        Move curMove = new(oldSlotNum, slotNum);
+
+        // Ueberprueft, ob dieser moeglich ist (Normaler- sowie Schlagzug).
+        List<Move> possibleMoves = GameManager.instance.GetPossibleMoves();
+        if (!possibleMoves.Any(m => m.StartSquare == curMove.StartSquare 
+                                 && m.TargetSquare == curMove.TargetSquare)) return;
+
+        // Deaktiviert die Visualisierung der moeglichen Zuege.
+        GameManager.instance.DeactivateMoveVisualisation();
+
+        // Laedt den gegebenen Zug
+        Move move = possibleMoves.Find(m => m.StartSquare == oldSlotNum && m.TargetSquare == slotNum);
+
+        // Initiiert einen Zug, falls es sich um eine Umwandlung handelt.
+        if (move.Promotion != -1)
+        {
+            GameManager.instance.ActivatePromotionVisuals(move);
+            curPromotionPointerDrag = pointerDrag;
+        }
+        // Initiiert einen normalen Zug.
+        else Move(pointerDrag, move);
+    }
+
+    /// <summary>
+    /// Die Funktion <c>Move</c> taetigt einen physischen Zug auf dem Spielbrett. Sie aktualisiert 
+    /// alle physischen Brettvariablen wie das Sprite der Figur, die Farbe, der SFX usw.
+    /// </summary>
+    /// <param name="pointerDrag">Das GameObject der bewegten Figur.</param>
+    /// <param name="move">Der ueberpruefte, eingegebene Zug.</param>
     public void Move(GameObject pointerDrag, Move move)
     {
         // Setzt den Positionsursprung der Figur auf das neue Feld

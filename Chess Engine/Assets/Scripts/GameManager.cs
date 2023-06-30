@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using static MoveGenerator;
@@ -38,8 +39,8 @@ public class GameManager : MonoBehaviour
     public Text debugSideToMove;
     public Text castlePermissions;
 
-    public int latestSlotNum;
-    public PointerEventData latestPointerData;
+    [HideInInspector] public int latestSlotNum;
+    [HideInInspector] public GameObject startSquare;
 
     [HideInInspector] private bool debugMode = false;
     
@@ -502,4 +503,19 @@ public class GameManager : MonoBehaviour
         checkMateWindow.SetActive(true);
     }
     
+    public void MakePhysicalMove(GameObject pointerDrag, int targetSlotNum)
+    {
+        // Simuliert einen Drag and Drop, falls nicht das selbe Feld angewählt wurde.
+        if (targetSlotNum != latestSlotNum)
+        {
+            if (startSquare != null)
+            {
+                pointerDrag.GetComponent<SquareSlot>().SimulateDragDropMove(startSquare);
+            }
+
+            startSquare = pointerDrag;
+            latestSlotNum = targetSlotNum;
+        }
+    }
+
 }
