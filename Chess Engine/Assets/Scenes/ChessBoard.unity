@@ -4761,6 +4761,8 @@ MonoBehaviour:
   fenInputField: {fileID: 138547111}
   debugSideToMove: {fileID: 907143922}
   castlePermissions: {fileID: 428979818}
+  latestSlotNum: 0
+  startSquare: {fileID: 0}
 --- !u!114 &1568758889
 MonoBehaviour:
   m_ObjectHideFlags: 0
