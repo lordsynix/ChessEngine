@@ -409,7 +409,6 @@ public class GameManager : MonoBehaviour
         sideToMove.text = Board.GetWhiteToMove() ? "Side to move: <b>White</b>" : "Side to move: <b>Black</b>";
     }
 
-
     /// <summary>
     /// Die Methode <c>ActivateMoveVisualization</c> aktiviert die grafische 
     /// Visualisierung aller verfügbaren Züge für die ausgewählte Figur.
@@ -456,6 +455,7 @@ public class GameManager : MonoBehaviour
 
         promotionWindow.SetActive(true);
         historyWindow.SetActive(false);
+        debugWindow.SetActive(false);
 
         if (whiteToMove) promotionWindow.transform.GetChild(1).gameObject.SetActive(true);
         else promotionWindow.transform.GetChild(2).gameObject.SetActive(true);
@@ -470,6 +470,7 @@ public class GameManager : MonoBehaviour
 
         promotionWindow.SetActive(false);
         historyWindow.SetActive(true);
+        debugWindow?.SetActive(true);
     }
 
     #endregion

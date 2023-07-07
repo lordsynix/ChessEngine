@@ -396,11 +396,19 @@ public static class Board
         if (move.Promotion != -1)
         {
             Promotion(move, piece, position, true);
-        }
 
-        // Startfeld
-        Square120[move.StartSquare] = Square120[move.TargetSquare];
-        Square64[ConvertIndex120To64(move.StartSquare)] = Square120[move.TargetSquare];
+            // Startfeld
+            int friendlyColor = (move.Promotion < Piece.BLACK) ? Piece.WHITE : Piece.BLACK;
+
+            Square120[move.StartSquare] = friendlyColor | Piece.PAWN;
+            Square64[ConvertIndex120To64(move.StartSquare)] = Square120[friendlyColor | Piece.PAWN];
+        }
+        else
+        {
+            // Startfeld
+            Square120[move.StartSquare] = Square120[move.TargetSquare];
+            Square64[ConvertIndex120To64(move.StartSquare)] = Square120[move.TargetSquare];
+        }
 
         // Zielfeld
         Square120[move.TargetSquare] = LastCapture;
@@ -495,12 +503,12 @@ public static class Board
 
     private static void Promotion(Move move, int piece, int position, bool undo = false)
     {
-        // Setzt die Position des umwandelnden Bauern zurück.
-        PiecesList[piece][position] = undo ? move.StartSquare : 0;
-
-        // Setzt die Position fuer die umgewandelte Figur.
         if (!undo)
         {
+            // Setzt die Position des umgewandelten Bauerns.
+            PiecesList[piece][position] = undo ? move.StartSquare : 0;
+
+            // Setzt die Position fuer die umgewandelte Figur.
             for (int i = 0; i < PiecesList[move.Promotion].Length; i++)
             {
                 if (PiecesList[move.Promotion][i] == 0)
@@ -512,7 +520,17 @@ public static class Board
         }
         else
         {
-            PiecesList[move.Promotion][Array.IndexOf(PiecesList[move.Promotion], move.TargetSquare)] = 0;
+            // Setzt die Position des umgewandelten Bauerns.
+            int _piece = (move.Promotion < Piece.BLACK) ? Piece.WHITE | Piece.PAWN : Piece.BLACK | Piece.PAWN;
+
+            for (int i = 0; i < PiecesList[_piece].Length; i++)
+            {
+                if (PiecesList[_piece][i] == 0) PiecesList[_piece][i] = move.StartSquare;
+            }
+
+            // Setzt die Position fuer die umgewandelte Figur zurueck.
+            PiecesList[move.Promotion][Array.IndexOf(PiecesList[move.Promotion], move.StartSquare)] = 0;
+
         }
         
     }

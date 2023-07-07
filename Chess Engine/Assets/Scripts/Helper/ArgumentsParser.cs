@@ -12,12 +12,6 @@ public class ArgumentsParser : MonoBehaviour
         instance = this;
 
         cmdArgs = System.Environment.GetCommandLineArgs();
-
-        // Logging
-        for (int i = 0; i < cmdArgs.Length; i++)
-        {
-            Debug.Log("ARG " + i + ": " + cmdArgs[i]);
-        }
     }
 
     public string GetArg(string arg)
