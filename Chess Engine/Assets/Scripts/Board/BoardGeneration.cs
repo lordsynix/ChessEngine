@@ -16,8 +16,9 @@ public class BoardGeneration : MonoBehaviour
 
     [HideInInspector] public List<GameObject> squaresGO;
 
-    private float squareWidth = 37.5f;
-    private int sqNum = 0;
+    private readonly float squareWidth = 37.5f;
+    private int sqNum;
+    private bool isWhite;
 
     [Header("Colors")]
     [SerializeField] private Color lightCol = Color.white; // #DDC39C
@@ -41,6 +42,9 @@ public class BoardGeneration : MonoBehaviour
 
     void CreateGraphicalBoard()
     {
+        isWhite = Board.GetPlayerColor() == Piece.WHITE;
+        sqNum = isWhite ? 0 : 63;
+        
         // Erstellt das Muster des Schachbretts fuer alle 64 Felder
         for (int rank = 0; rank < 8; rank++)
         {
@@ -52,25 +56,28 @@ public class BoardGeneration : MonoBehaviour
                 GenerateSquare(position, isLightSquare);
             }
         }
-        sqNum = 0;
     }
 
     void GenerateSquare (Vector2 position, bool isLightSquare)
     {
-        // Definiert fuer jedes Feld eine Farbe
-        var squareColor = (isLightSquare) ? lightCol : darkCol;
-
         // Initiiert ein Feld an der angegebenen Position als child des Board Panel.
         // Die Feldposition muss mit der Haelfte der Breite und negativen Haelfte der
-        // Hoehe des parent transform subtrahiert werden um korrekt abgebildet zu werden.
+        // Hoehe des parent transform subtrahiert werden, um korrekt abgebildet zu werden.
         GameObject newSquare = Instantiate(squarePrefab, transform);
         
         RectTransform rtParent = (RectTransform)transform;
         newSquare.transform.localPosition = position - new Vector2(rtParent.rect.width / 2, -rtParent.rect.height / 2);
+
+        // Definiert die Farbe fuer das Feld.
+        var squareColor = isLightSquare ? lightCol : darkCol;
         newSquare.GetComponent<Image>().color = squareColor;
+
+        // Definiert den Index fuer das Feld.
         int sq120 = Board.ConvertIndex64To120(sqNum);
         Variables.Object(newSquare.transform.GetChild(0)).Set("SquareNum", sq120);
-        sqNum++;
+        sqNum += isWhite ? 1 : -1;
+
+        // Speichert das Feld als GameObject ab.
         squaresGO.Add(newSquare);
     }
 
@@ -80,6 +87,8 @@ public class BoardGeneration : MonoBehaviour
     /// </summary>
     public void GeneratePieces(int[] squares)
     {
+        if (!isWhite) squaresGO.Reverse();
+
         for (int i = 0; i < squaresGO.Count; i++)
         {
             GameObject go = squaresGO[i].transform.GetChild(0).gameObject;

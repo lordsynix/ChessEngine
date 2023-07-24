@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using static MoveGenerator;
 
-// Importiert verschiedene Klassen von Unity, um den Drag and Drop Mechanismus zu vereinfachen
+// Importiert verschiedene Klassen von Unity, um den Drag and Drop Mechanismus zu vereinfachen.
 public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler,
                                        IDragHandler, IInitializePotentialDragHandler
 {
@@ -18,26 +18,40 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     private CanvasGroup canvasGroup;
     private Canvas myCanvas;
 
+    private bool isWhite;
+
     private Vector2 startPosition;
     private int slotNum;
 
     private void Awake()
     {
-        // Weist den Referenzen die entsprechenden Komponenten zu
+        // Weist den Referenzen die entsprechenden Komponenten zu.
         canvas = GameObject.Find("Canvas");
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
         startPosition = rectTransform.anchoredPosition;
         myCanvas = GetComponent<Canvas>();
+        isWhite = Board.GetPlayerColor() == Piece.WHITE;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        // Aktiviert die Visualisierung aller möglichen Züge
+        // Laesst die Visualisierung der Zuege nur bei eigenen Figuren zu.
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
+        int piece = Board.PieceOnSquare(slotNum);
+        int friendlyColor = Board.GetPlayerColor();
 
-        GameManager.instance.DeactivateMoveVisualisation();
-        GameManager.instance.ActivateMoveVisualization(slotNum);
+        if (Piece.IsColor(piece, friendlyColor))
+        {
+            // Aktiviert die Visualisierung aller möglichen Züge.
+            GameManager.instance.DeactivateMoveVisualisation();
+            GameManager.instance.ActivateMoveVisualization(slotNum);
+        }
+        else
+        {
+            // Gegnerische Figur.
+            ExitDragDrop();
+        }
 
         GameManager.instance.MakePhysicalMove(gameObject, slotNum);
     }
@@ -45,7 +59,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
     public void OnBeginDrag(PointerEventData eventData)
     {
         // Stellt sicher, dass sich die ausgewaehlte Figur
-        // ueber den anderen UI-Elementen befindet
+        // ueber den anderen UI-Elementen befindet.
         canvasGroup.blocksRaycasts = false;
         myCanvas.sortingOrder += 1;
     }
@@ -57,7 +71,7 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
         if (!foundSquare) ExitDragDrop();
 
-        // Zurücksetzten der Variablen
+        // Zurücksetzten der Variablen.
         foundSquare = false;
     }
 
@@ -69,13 +83,13 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnDrag(PointerEventData eventData)
     {
-        // Verschiebt die Figur mit der Maus
+        // Verschiebt die Figur mit der Maus.
         rectTransform.anchoredPosition += eventData.delta / canvas.GetComponent<Canvas>().scaleFactor;
     }
 
     public void OnInitializePotentialDrag(PointerEventData eventData)
     {
-        // Deaktiviert das eingebaute Drag and Drop Verhalten von Unity
+        // Deaktiviert das eingebaute Drag and Drop Verhalten von Unity.
         eventData.useDragThreshold = false;
     }
 

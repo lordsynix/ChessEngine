@@ -14,9 +14,13 @@ using static MoveGenerator;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    public string[] puzzlesData;
+
     private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
     // private const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
     // private const string testFEN2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w ";
+
+    private List<int> usedPuzzlesId = new();
 
     public static GameManager instance;
 
@@ -74,7 +78,9 @@ public class GameManager : MonoBehaviour
         square120 = Board.GetSquare120();
 
         ResetHighlightedMoves();
-        LoadFenPosition(startFEN);
+
+        if (SceneManager.GetActiveScene().name == "ChessBoard") LoadFenPosition(startFEN);
+        else if (SceneManager.GetActiveScene().name == "Puzzles") LoadFenPosition(GetPuzzleFen());
     }
 
     private void Update()
@@ -151,7 +157,7 @@ public class GameManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogException(ex);
+            Debug.LogException(ex);
             fenInputField.text = "Invalid position";
             Error.instance.OnError();
             LoadFenPosition(startFEN);
@@ -517,6 +523,21 @@ public class GameManager : MonoBehaviour
             startSquare = pointerDrag;
             latestSlotNum = targetSlotNum;
         }
+    }
+
+    private string GetPuzzleFen()
+    {
+        int id = UnityEngine.Random.Range(0, puzzlesData.Length - 1);
+        
+        string[] randomPuzzle = puzzlesData[id].Split(',');
+
+        string fen = randomPuzzle[0];
+
+        if (usedPuzzlesId.Contains(id)) return GetPuzzleFen();
+
+        usedPuzzlesId.Add(id);
+
+        return fen;
     }
 
 }

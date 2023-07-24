@@ -25,10 +25,11 @@ public static class Engine
         friendlyColor = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
         opponentColor = Piece.OpponentColor(friendlyColor);
 
-        currentPosition = new(GenerateMoves(), Board.GetPieceLocation(), friendlyColor, opponentColor);
+        currentPosition = new(Board.GetPieceLocation(), friendlyColor, opponentColor);
 
         Minimax(currentPosition, 1, friendlyColor == Piece.WHITE);
 
+        // Stellt sicher, dass der Koenig nicht geschlagen werden kann.
         List<Move> illegalPositions = new();
 
         int responses = 0;

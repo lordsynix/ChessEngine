@@ -15,18 +15,30 @@ public class Position
     public int FriendlyColor;
     public int OpponentColor;
 
-    public Position(List<Move> moves, List<int[]> piecesList, int friendlyColor, int opponentColor)
+    public Position(List<int[]> piecesList, int friendlyColor, int opponentColor)
     {
-        PossibleMoves = moves;
         PiecesList = piecesList;
         FriendlyColor = friendlyColor;
         OpponentColor = opponentColor;
 
+        PossibleMoves = GetPossibleMoves();
         GameOver = IsOver();
+    }
+
+    public List<Move> GetPossibleMoves()
+    {
+        if (PossibleMoves == null)
+        {
+            return GenerateMoves();
+        }
+        
+        return PossibleMoves;
     }
 
     public List<Position> GetChildPositions()
     {
+        if (ChildPositions != null) return ChildPositions;
+
         ChildPositions = new();
 
         foreach (Move move in PossibleMoves)
@@ -35,7 +47,7 @@ public class Position
 
             FriendlyColor = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
             OpponentColor = Piece.OpponentColor(FriendlyColor);
-            ChildPositions.Add(new(GenerateMoves(), Board.GetPieceLocation(), FriendlyColor, OpponentColor));
+            ChildPositions.Add(new(Board.GetPieceLocation(), FriendlyColor, OpponentColor));
 
             Board.UnmakeMove(move);
         }

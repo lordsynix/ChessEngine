@@ -53,13 +53,18 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
         oldSlotNum = (int)Variables.Object(pointerDrag).Get("SquareNum");
 
+        int piece = Board.PieceOnSquare(oldSlotNum);
+        int friendlyColor = Board.GetPlayerColor();
+        Debug.Log($"Piece: {piece} Color: {friendlyColor}");
+        if (!Piece.IsColor(piece, friendlyColor)) return;
+
         // Der eingegebene Zug.
         Move curMove = new(oldSlotNum, slotNum);
 
         // Ueberprueft, ob dieser moeglich ist (Normaler- sowie Schlagzug).
         List<Move> possibleMoves = GameManager.instance.GetPossibleMoves();
         if (!possibleMoves.Any(m => m.StartSquare == curMove.StartSquare 
-                                 && m.TargetSquare == curMove.TargetSquare)) return;
+                               && m.TargetSquare == curMove.TargetSquare)) return;
 
         // Deaktiviert die Visualisierung der moeglichen Zuege.
         GameManager.instance.DeactivateMoveVisualisation();

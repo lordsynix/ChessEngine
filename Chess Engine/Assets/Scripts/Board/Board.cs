@@ -11,6 +11,8 @@ using static MoveGenerator;
 /// </summary>
 public static class Board
 {
+    private static int PlayerColor;
+
     private static int MoveCount = 0;
 
     private static int[] Square64;
@@ -38,6 +40,31 @@ public static class Board
     private static bool _BlackCastleQueenside;
 
     #region SETTER AND GETTER
+
+    public static int GetPlayerColor()
+    {
+        return PlayerColor;
+    }
+
+    /// <summary>
+    /// Die Funktion <c>SetPlayerColor</c> gibt ausgehend von einem uebergebenen Symbol die Farbe des Spielers zurueck.
+    /// </summary>
+    /// <param name="symbol">Die uebergebene Farbe als char-Wert.</param>
+    public static void SetPlayerColor(char symbol)
+    {
+        int color;
+
+        if (symbol == '-') color = UnityEngine.Random.Range(0, 1) == 0 ? Piece.WHITE : Piece.BLACK; // Waelt zufaellige Farbe fuer den Spieler aus.
+        else if (symbol == 'w') color = Piece.WHITE;
+        else if (symbol == 'b') color = Piece.BLACK;
+        else
+        {
+            Debug.LogError("Color symbol not valid");
+            color = -1;
+        } 
+            
+        PlayerColor = color;
+    }
 
     /// <summary>
     /// Die Methode <c>GetSquare64</c> gibt einen Square Array zurueck, speichert Piece.Type
@@ -137,7 +164,7 @@ public static class Board
                 if (char.IsUpper(symbol)) WhiteCastleQueenside = true;
                 else BlackCastleQueenside = true;
             }
-            else Error.instance.OnError();
+            else if (symbol != '-') Error.instance.OnError();
         }
     }
 
@@ -190,6 +217,11 @@ public static class Board
         }
 
         return PiecesList;
+    }
+
+    public static int PieceOnSquare(int square)
+    {
+        return Square120[square];
     }
 
     #endregion
@@ -275,6 +307,33 @@ public static class Board
         return rank * 8 + file;
     }
 
+    /// <summary>
+    /// Die Funktion <c>DesignateMove</c> beschriftet einen Zug in einer intuitiveren Form.
+    /// </summary>
+    /// <param name="move">Den zu beschriftenden Zug.</param>
+    /// <returns>Verstaendlichere Beschriftung als String.</returns>
+    public static string DesignateMove(Move move)
+    {
+        return DesignateSquare(move.StartSquare) + " to " + DesignateSquare(move.TargetSquare);
+    }
+
+    /// <summary>
+    /// Die Funktion <c>DesignateSquare</c> beschriftet ein Feld auf dem Brett in der algebraischen Notation.
+    /// </summary>
+    /// <param name="move">Das zu beschriftende Feld als Index in der 12x12-Darstellung.</param>
+    /// <returns>Algebraische Notation des Feldes als String.</returns>
+    public static string DesignateSquare(int index)
+    {
+        string s = "";
+
+        int file = (index % 10) - 1;
+        int rank = 8 - (((index - (index % 10)) / 10) - 2);
+
+        s += (char)(65 + file);
+        s += rank;
+        return s;
+    }
+
     #endregion
 
     /// <summary>
@@ -299,6 +358,8 @@ public static class Board
 
     public static void MakeMove(Move move, bool generateMoves = false)
     {
+        //Debug.Log("Move: " + DesignateMove(move));
+
         // Position der Figuren
         int piece = Square120[move.StartSquare];
         int position = Array.IndexOf(PiecesList[piece], move.StartSquare);
@@ -353,7 +414,8 @@ public static class Board
         }
 
         // En Passant Square
-        EnPassantSquare = move.EnPassant;
+        _EnPassantSquare = EnPassantSquare;
+        SetEnPassantSquare(move.EnPassant);
 
         // Player to move
         WhiteToMove = !WhiteToMove;
@@ -367,6 +429,8 @@ public static class Board
 
     public static void UnmakeMove(Move move)
     {
+        //Debug.Log("Unmake Move: " + DesignateMove(move));
+
         // Position der Figuren
         int piece = Square120[move.TargetSquare];
         int position = Array.IndexOf(PiecesList[piece], move.TargetSquare);
@@ -422,7 +486,7 @@ public static class Board
         }
 
         // En Passant Square
-        EnPassantSquare = _EnPassantSquare;
+        SetEnPassantSquare(_EnPassantSquare);
 
         // Player to move
         WhiteToMove = !WhiteToMove;
@@ -537,7 +601,7 @@ public static class Board
 
     private static void EnPassant(Move move, bool undo = false)
     {
-        Debug.Log($"En Passant Square: {EnPassantSquare} {move.EnPassant}");
+        if (EnPassantSquare == 0) Debug.LogError($"En Passant Error! EnPassantSquare's index can't be 0.");
         int pawnSq = EnPassantSquare;
         pawnSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
 
@@ -547,7 +611,7 @@ public static class Board
 
         if (!undo)
         {
-            if (Square120[pawnSq] != (WhiteToMove ? 10 : 18)) Debug.LogError($"Something is wrong! Pawn Square: {pawnSq} {Square120[pawnSq]}");
+            if (Square120[pawnSq] != (WhiteToMove ? 10 : 18)) Debug.LogError($"En Passant Error! Pawn Square: {pawnSq} {Square120[pawnSq]}");
 
             // Aktualisiert die Position des geschlagenen Bauern.
             int pos = Array.IndexOf(PiecesList[Square120[pawnSq]], pawnSq);

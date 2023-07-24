@@ -38,8 +38,12 @@ public class MainMenu : MonoBehaviour
 
     #region Buttons
 
-    public void Play()
+    public void Play(string color)
     {
+        // Uebergibt die Farbe des Spielers an das Brett.
+        if (color.Length > 1) Debug.LogError("Please enter the color as a char");
+        Board.SetPlayerColor(color[0]); 
+
         // Laedt die Schachszene (Hauptszene)
         SceneManager.LoadScene(1);
     }
