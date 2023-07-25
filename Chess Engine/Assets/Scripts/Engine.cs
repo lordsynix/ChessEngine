@@ -18,7 +18,7 @@ public static class Engine
     const int rookValue = 500;
     const int queenValue = 900;
 
-    public static List<Move> Search()
+    public static Position Search()
     {
         float startTime = Time.realtimeSinceStartup;
 
@@ -27,6 +27,7 @@ public static class Engine
 
         currentPosition = new(Board.GetPieceLocation(), friendlyColor, opponentColor);
 
+        // Evaluiert die beste Position nach einer Zugabfolge.
         Minimax(currentPosition, 1, friendlyColor == Piece.WHITE);
 
         // Stellt sicher, dass der Koenig nicht geschlagen werden kann.
@@ -52,7 +53,10 @@ public static class Engine
             }
         }
 
+        // Filtert die illegalen Zuege aus den Moeglichen heraus.
         currentPosition.PossibleMoves.RemoveAll(move => illegalPositions.Contains(move));
+
+        // Ueberprueft, ob noch Zuege moeglich sind.
         if (currentPosition.PossibleMoves.Count == 0)
         {
             currentPosition.GameOver = true;
@@ -62,7 +66,7 @@ public static class Engine
         Debug.Log($"{currentPosition.PossibleMoves.Count} possible moves and {responses} possible responses -------- " +
                   $"Time: {(Time.realtimeSinceStartup - startTime) * 1000} ms");
 
-        return currentPosition.PossibleMoves;
+        return currentPosition;
     }
 
     public static int Minimax(Position pos, int depth, bool isWhite)

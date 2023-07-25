@@ -20,16 +20,6 @@ public class SquareSlot : MonoBehaviour, IDropHandler
     private int slotNum;
 
     /// <summary>
-    /// Die Funktion <c>SimulateDragDropMove</c> initiiert einen Zug, welcher nur durch klicken 
-    /// auf die jeweiligen Felder gespielt wurde und nicht per "Drag and Drop".
-    /// </summary>
-    /// <param name="startSquare">Im GameManager abgespeichert. Das GameObject der bewegten Figur</param>
-    public void SimulateDragDropMove(GameObject startSquare)
-    {
-        VerifyMove(startSquare);
-    }
-
-    /// <summary>
     /// Die Funktion <c>OnDrop</c> wird von Unity beim beenden des "Drag and Drop" aufgerufen.
     /// Initiiert einen Zug.
     /// </summary>
@@ -46,17 +36,22 @@ public class SquareSlot : MonoBehaviour, IDropHandler
     /// Die Funktion <c>VerifyMove</c> ueberprueft, ob die aktuelle Zugeingabe ein moeglicher Zug ist.
     /// </summary>
     /// <param name="pointerDrag">Das GameObject der bewegten Figur.</param>
-    public void VerifyMove(GameObject pointerDrag)
+    public void VerifyMove(GameObject pointerDrag, bool engineMove = false)
     {
-        // Weist den Referenzen die entsprechenden Komponenten zu
+        // Weist den Referenzen die entsprechenden Komponenten zu.
         slot = GetComponent<Image>();
         slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
         oldSlotNum = (int)Variables.Object(pointerDrag).Get("SquareNum");
 
-        int piece = Board.PieceOnSquare(oldSlotNum);
-        int friendlyColor = Board.GetPlayerColor();
-        Debug.Log($"Piece: {piece} Color: {friendlyColor}");
-        if (!Piece.IsColor(piece, friendlyColor)) return;
+        // Stellt sicher, dass der Spieler nur seine Figuren bewegen kann.
+        if (!engineMove)
+        {
+            int piece = Board.PieceOnSquare(oldSlotNum);
+            int friendlyColor = Board.GetPlayerColor();
+            if (!Piece.IsColor(piece, friendlyColor)) return;
+        }
+
+        Debug.Log($"{oldSlotNum} to {slotNum}");
 
         // Der eingegebene Zug.
         Move curMove = new(oldSlotNum, slotNum);
@@ -65,6 +60,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         List<Move> possibleMoves = GameManager.instance.GetPossibleMoves();
         if (!possibleMoves.Any(m => m.StartSquare == curMove.StartSquare 
                                && m.TargetSquare == curMove.TargetSquare)) return;
+
+        Debug.Log("reached");
 
         // Deaktiviert die Visualisierung der moeglichen Zuege.
         GameManager.instance.DeactivateMoveVisualisation();

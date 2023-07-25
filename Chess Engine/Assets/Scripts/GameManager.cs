@@ -104,7 +104,15 @@ public class GameManager : MonoBehaviour
 
     public void SetPossibleMoves()
     {
-        possibleMoves = Engine.Search();
+        Position currentPosition = Engine.Search();
+
+        possibleMoves = currentPosition.PossibleMoves;
+
+        // Ueberprueft, ob die Engine den naechsten Zug macht.
+        if (Board.GetPlayerColor() != (Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK) && !currentPosition.GameOver)
+        {
+            MakeEngineMove(possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)]);
+        }
     }
 
     #endregion
@@ -480,7 +488,7 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
-
+    
     void ResetBoard()
     {
         // Brett-Variablen zuruecksetzen
@@ -517,12 +525,24 @@ public class GameManager : MonoBehaviour
         {
             if (startSquare != null)
             {
-                pointerDrag.GetComponent<SquareSlot>().SimulateDragDropMove(startSquare);
+                pointerDrag.GetComponent<SquareSlot>().VerifyMove(startSquare);
             }
 
             startSquare = pointerDrag;
             latestSlotNum = targetSlotNum;
         }
+    }
+
+    public void MakeEngineMove(Move move)
+    {
+        // Weist fuer alle beteiligten Felder die GameObjects zu.
+        GameObject startSquare = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(move.StartSquare)];
+        GameObject targetSquare = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(move.TargetSquare)];
+
+        GameObject startSquarePiece = startSquare.transform.GetChild(0).gameObject;
+
+        // Spielt den Zug aus.
+        targetSquare.GetComponentInChildren<SquareSlot>().VerifyMove(startSquarePiece, true);
     }
 
     private string GetPuzzleFen()
