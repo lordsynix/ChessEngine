@@ -29,7 +29,10 @@ public class Position
     {
         if (PossibleMoves == null)
         {
-            return GenerateMoves();
+            var moves = GenerateMoves();
+            GameOver = moves.Count == 0;
+
+            return moves;
         }
         
         return PossibleMoves;
@@ -41,7 +44,7 @@ public class Position
 
         ChildPositions = new();
 
-        foreach (Move move in PossibleMoves)
+        foreach (Move move in GetPossibleMoves())
         {
             Board.MakeMove(move);
 

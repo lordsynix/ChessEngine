@@ -11,7 +11,16 @@ using static MoveGenerator;
 /// </summary>
 public static class Board
 {
-    private static int PlayerColor;
+    public enum Mode
+    {
+        HumanComputer,
+        HumanHuman,
+        ComputerComputer
+    }
+
+    private static Mode GameMode;
+
+    private static int PlayerColor = -1;
 
     private static int MoveCount = 0;
 
@@ -28,8 +37,6 @@ public static class Board
 
     private static List<int[]> PiecesList = new();
 
-    private static Position CurrentPosition;
-
     private static int LastCapture;
 
     private static int _EnPassantSquare;
@@ -43,18 +50,21 @@ public static class Board
 
     public static int GetPlayerColor()
     {
-        return PlayerColor;
+        if (PlayerColor == -1) return SetPlayerColor('-');
+        else return PlayerColor;
     }
 
     /// <summary>
     /// Die Funktion <c>SetPlayerColor</c> gibt ausgehend von einem uebergebenen Symbol die Farbe des Spielers zurueck.
     /// </summary>
     /// <param name="symbol">Die uebergebene Farbe als char-Wert.</param>
-    public static void SetPlayerColor(char symbol)
+    public static int SetPlayerColor(char symbol)
     {
         int color;
 
-        if (symbol == '-') color = UnityEngine.Random.Range(0, 1) == 0 ? Piece.WHITE : Piece.BLACK; // Waelt zufaellige Farbe fuer den Spieler aus.
+        // Waelt zufaellige Farbe fuer den Spieler aus.
+        if (symbol == '-') color = UnityEngine.Random.Range(0, 2) == 0 ? Piece.WHITE : Piece.BLACK;
+
         else if (symbol == 'w') color = Piece.WHITE;
         else if (symbol == 'b') color = Piece.BLACK;
         else
@@ -64,6 +74,18 @@ public static class Board
         } 
             
         PlayerColor = color;
+
+        return PlayerColor;
+    }
+
+    public static Mode GetGameMode()
+    {
+        return GameMode;
+    }
+
+    public static void SetGameMode(Mode mode)
+    {
+        GameMode = mode;
     }
 
     /// <summary>
@@ -314,7 +336,7 @@ public static class Board
     /// <returns>Verstaendlichere Beschriftung als String.</returns>
     public static string DesignateMove(Move move)
     {
-        return DesignateSquare(move.StartSquare) + " to " + DesignateSquare(move.TargetSquare);
+        return DesignateSquare(move.StartSquare) + DesignateSquare(move.TargetSquare);
     }
 
     /// <summary>
@@ -358,8 +380,6 @@ public static class Board
 
     public static void MakeMove(Move move, bool generateMoves = false)
     {
-        //Debug.Log("Move: " + DesignateMove(move));
-
         // Position der Figuren
         int piece = Square120[move.StartSquare];
         int position = Array.IndexOf(PiecesList[piece], move.StartSquare);

@@ -15,6 +15,8 @@ using static MoveGenerator;
 public class GameManager : MonoBehaviour
 {
     public string[] puzzlesData;
+    public GameObject gameTreeRoot;
+    public GameObject movePrefab;
 
     private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
     // private const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
@@ -35,6 +37,8 @@ public class GameManager : MonoBehaviour
     public GameObject moveInformationPrefab;
     public GameObject moveInformationHolder;
     public Text sideToMove;
+    public Text movesCounter;
+    public Text responsesCounter;
 
     [Header("Debug Tools")]
     public GameObject squareInformationPrefab;
@@ -46,13 +50,13 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public int latestSlotNum;
     [HideInInspector] public GameObject startSquare;
 
-    [HideInInspector] private bool debugMode = false;
+    private bool debugMode = false;
     
-    [HideInInspector] private int[] square64 = null;
-    [HideInInspector] private int[] square120 = null;
+    private int[] square64 = null;
+    private int[] square120 = null;
 
-    [HideInInspector] private List<GameObject> highlightedMoves;
-    [HideInInspector] private List<Move> possibleMoves;
+    private List<GameObject> highlightedMoves;
+    private List<Move> possibleMoves;
 
     private Move curMove;
     private readonly Dictionary<char, int> pieceTypeFromSymbol = new()
@@ -106,12 +110,19 @@ public class GameManager : MonoBehaviour
     {
         Position currentPosition = Engine.Search();
 
-        possibleMoves = currentPosition.PossibleMoves;
+        possibleMoves = currentPosition.GetPossibleMoves();
 
         // Ueberprueft, ob die Engine den naechsten Zug macht.
-        if (Board.GetPlayerColor() != (Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK) && !currentPosition.GameOver)
+        if (Board.GetGameMode() == Board.Mode.HumanComputer)
         {
-            MakeEngineMove(possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)]);
+            if (Board.GetPlayerColor() != (Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK) && !currentPosition.GameOver)
+            {
+                StartCoroutine(MakeEngineMove(possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)]));
+            }
+            else
+            {
+                UpdateGameTree(currentPosition);
+            }
         }
     }
 
@@ -286,8 +297,10 @@ public class GameManager : MonoBehaviour
 
         curMove.Promotion = pieceColor | pieceType;
 
-        SquareSlot sqSlot = boardWindow.transform.GetChild(Board.ConvertIndex120To64(curMove.TargetSquare))
-                            .GetComponentInChildren<SquareSlot>();
+        int targetSq = Board.ConvertIndex120To64(curMove.TargetSquare);
+        int sqIndex = (Board.GetPlayerColor() == Piece.WHITE) ? targetSq : 63 - targetSq;
+
+        SquareSlot sqSlot = boardWindow.transform.GetChild(sqIndex).GetComponentInChildren<SquareSlot>();
 
         sqSlot.Move(sqSlot.curPromotionPointerDrag, curMove);
 
@@ -413,8 +426,8 @@ public class GameManager : MonoBehaviour
         int moveCount = Board.GetMoveCount();
 
         prefabTexts[0].text = moveCount.ToString();
-        prefabTexts[1].text = move.StartSquare.ToString();
-        prefabTexts[2].text = move.TargetSquare.ToString();
+        prefabTexts[1].text = Board.DesignateSquare(move.StartSquare);
+        prefabTexts[2].text = Board.DesignateSquare(move.TargetSquare);
 
         piece.sprite = BoardGeneration.instance.pieces[square120[move.TargetSquare]];
 
@@ -483,8 +496,37 @@ public class GameManager : MonoBehaviour
         promotionWindow.transform.GetChild(2).gameObject.SetActive(false);
 
         promotionWindow.SetActive(false);
-        historyWindow.SetActive(true);
-        debugWindow?.SetActive(true);
+        if (debugMode) debugWindow.SetActive(true);
+        else historyWindow.SetActive(true);
+    }
+
+    public void SetPositionStats(int moves, int responses)
+    {
+        movesCounter.text = "Possible Moves: " + moves.ToString();
+        responsesCounter.text = "Possible Responses: " + responses.ToString();
+    }
+
+    public void UpdateGameTree(Position pos)
+    {
+        foreach (Transform child in gameTreeRoot.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach(Move move in pos.PossibleMoves)
+        {
+            var moveGO = Instantiate(movePrefab, gameTreeRoot.transform);
+            moveGO.name = Board.DesignateMove(move);
+
+            foreach (Move responseMove in pos.ChildPositions[pos.PossibleMoves.IndexOf(move)].PossibleMoves)
+            {
+                var childMoveGO = Instantiate(movePrefab, moveGO.transform);
+                childMoveGO.name = Board.DesignateMove(responseMove);
+            }
+        }
+
+        if (pos.PossibleMoves.Count != pos.ChildPositions.Count) 
+            Debug.LogError("Possible Positions can't differ from Possible Moves");
     }
 
     #endregion
@@ -515,7 +557,13 @@ public class GameManager : MonoBehaviour
     {
         int winner = Piece.OpponentColor(Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK);
 
+        if (winner == Board.GetPlayerColor())
+            checkMateWindow.GetComponentInChildren<Text>().text = "You Win!";
+        else checkMateWindow.GetComponentInChildren<Text>().text = "You Lose!";
+
         checkMateWindow.SetActive(true);
+        movesCounter.gameObject.SetActive(false);
+        responsesCounter.gameObject.SetActive(false);
     }
     
     public void MakePhysicalMove(GameObject pointerDrag, int targetSlotNum)
@@ -533,8 +581,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void MakeEngineMove(Move move)
+    IEnumerator MakeEngineMove(Move move)
     {
+        // TODO use delay time to calculate.
+        yield return new WaitForSeconds(1);
+
         // Weist fuer alle beteiligten Felder die GameObjects zu.
         GameObject startSquare = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(move.StartSquare)];
         GameObject targetSquare = BoardGeneration.instance.squaresGO[Board.ConvertIndex120To64(move.TargetSquare)];

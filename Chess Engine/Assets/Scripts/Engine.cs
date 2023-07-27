@@ -63,8 +63,10 @@ public static class Engine
             GameManager.instance.CheckMate();
         }
 
-        Debug.Log($"{currentPosition.PossibleMoves.Count} possible moves and {responses} possible responses -------- " +
-                  $"Time: {(Time.realtimeSinceStartup - startTime) * 1000} ms");
+        /*Debug.Log($"{currentPosition.PossibleMoves.Count} possible moves and {responses} possible responses -------- " +
+                  $"Time: {(Time.realtimeSinceStartup - startTime) * 1000} ms");*/
+
+        GameManager.instance.SetPositionStats(currentPosition.PossibleMoves.Count, responses);
 
         return currentPosition;
     }
