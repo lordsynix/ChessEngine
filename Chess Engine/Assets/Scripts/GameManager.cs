@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public int latestSlotNum;
     [HideInInspector] public GameObject startSquare;
 
-    private bool debugMode = false;
+    public bool DebugMode { get; private set; }
     
     private int[] square64 = null;
     private int[] square120 = null;
@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                UpdateGameTree(currentPosition);
+                if (DebugMode) UpdateGameTree(currentPosition);
             }
         }
     }
@@ -270,8 +270,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void DebugButton()
     {
-        debugMode = !debugMode; // TODO: ich wuerde hier einen kommentar einfuegen warum du das so machst
-        if (debugMode) ActivateDebugMode(); // ich finde den code lesbarer, wenn ein if auf 2 zeilen verteilt wird, auch wenn danach nur eine zeile folgt
+        DebugMode = !DebugMode; // Mehrfaches Klicken fuehrt zum Ausschalten des Debug Modus.
+
+        if (DebugMode) ActivateDebugMode();
         else DeactivateDebugMode();
     }
     
@@ -316,7 +317,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ActivateDebugMode()
     {
-        if (!debugMode) return;
+        if (!DebugMode) return;
 
         square64 = Board.GetSquare64From120();
         List<int[]> piecesList = Board.GetPieceLocation();
@@ -496,7 +497,7 @@ public class GameManager : MonoBehaviour
         promotionWindow.transform.GetChild(2).gameObject.SetActive(false);
 
         promotionWindow.SetActive(false);
-        if (debugMode) debugWindow.SetActive(true);
+        if (DebugMode) debugWindow.SetActive(true);
         else historyWindow.SetActive(true);
     }
 

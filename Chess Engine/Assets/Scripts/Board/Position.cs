@@ -7,19 +7,33 @@ public class Position
 {
     public bool GameOver = false;
 
+    // Position
+    public bool WhiteToMove;
+    public int EnPassantSquare;
+
+    public bool WhiteCastleKingside;
+    public bool WhiteCastleQueenside;
+    public bool BlackCastleKingside;
+    public bool BlackCastleQueenside;
+
     public List<Position> ChildPositions;
 
     public List<Move> PossibleMoves;
     public List<int[]> PiecesList;
 
-    public int FriendlyColor;
-    public int OpponentColor;
-
-    public Position(List<int[]> piecesList, int friendlyColor, int opponentColor)
+    public Position(List<int[]> piecesList, bool whiteToMove, int enPassantSquare)
     {
         PiecesList = piecesList;
-        FriendlyColor = friendlyColor;
-        OpponentColor = opponentColor;
+
+        WhiteToMove = whiteToMove;
+        EnPassantSquare = enPassantSquare;
+
+        bool[] permissions = Board.GetCastlePermissions();
+
+        WhiteCastleKingside = permissions[0];
+        WhiteCastleQueenside = permissions[1];
+        BlackCastleKingside = permissions[2];
+        BlackCastleQueenside = permissions[3];
 
         PossibleMoves = GetPossibleMoves();
         GameOver = IsOver();
@@ -46,11 +60,9 @@ public class Position
 
         foreach (Move move in GetPossibleMoves())
         {
-            Board.MakeMove(move);
+            Board.MakeMove(move, true);
 
-            FriendlyColor = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
-            OpponentColor = Piece.OpponentColor(FriendlyColor);
-            ChildPositions.Add(new(Board.GetPieceLocation(), FriendlyColor, OpponentColor));
+            ChildPositions.Add(new(Board.GetPieceLocation(), Board.GetWhiteToMove(), Board.GetEnPassantSquare()));
 
             Board.UnmakeMove(move);
         }

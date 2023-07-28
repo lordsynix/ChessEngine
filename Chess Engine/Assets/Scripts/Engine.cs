@@ -23,15 +23,15 @@ public static class Engine
         float startTime = Time.realtimeSinceStartup;
 
         friendlyColor = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
-        opponentColor = Piece.OpponentColor(friendlyColor);
 
-        currentPosition = new(Board.GetPieceLocation(), friendlyColor, opponentColor);
+        currentPosition = new(Board.GetPieceLocation(), Board.GetWhiteToMove(), Board.GetEnPassantSquare());
 
         // Evaluiert die beste Position nach einer Zugabfolge.
         Minimax(currentPosition, 1, friendlyColor == Piece.WHITE);
 
         // Stellt sicher, dass der Koenig nicht geschlagen werden kann.
-        List<Move> illegalPositions = new();
+        List<Move> illegalMoves = new();
+        List<Position> illegalPositions = new();
 
         int responses = 0;
         foreach (Position pos in currentPosition.ChildPositions)
@@ -47,14 +47,15 @@ public static class Engine
             {
                 if (move.TargetSquare == kingSq)
                 {
-                    int posIndex = currentPosition.ChildPositions.IndexOf(pos);
-                    illegalPositions.Add(currentPosition.PossibleMoves[posIndex]);
+                    illegalMoves.Add(currentPosition.PossibleMoves[index]);
+                    illegalPositions.Add(pos);
                 }
             }
         }
 
         // Filtert die illegalen Zuege aus den Moeglichen heraus.
-        currentPosition.PossibleMoves.RemoveAll(move => illegalPositions.Contains(move));
+        currentPosition.PossibleMoves.RemoveAll(move => illegalMoves.Contains(move));
+        currentPosition.ChildPositions.RemoveAll(pos => illegalPositions.Contains(pos));
 
         // Ueberprueft, ob noch Zuege moeglich sind.
         if (currentPosition.PossibleMoves.Count == 0)

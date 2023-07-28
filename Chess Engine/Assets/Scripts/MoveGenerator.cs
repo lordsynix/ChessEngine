@@ -233,7 +233,10 @@ public static class MoveGenerator
         else if (Piece.IsPawn(piece))
         {
             if (targetSquare == Board.GetEnPassantSquare())
+            {
                 moves.Add(new Move(startSquare, targetSquare, 2));
+
+            }
         }
 
         return false;

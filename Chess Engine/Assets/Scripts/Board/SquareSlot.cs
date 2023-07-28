@@ -109,7 +109,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         else if (move.Type == 1) FindObjectOfType<AudioManager>().Play("move_capture");
 
         // Aktualisiert die Brett-Variablen
-        Board.MakeMove(move, true);
+        Board.MakeMove(move);
 
         // Stellt sicher, dass der DebugMode verlassen wird
         GameManager.instance.ActivateDebugMode();

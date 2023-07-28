@@ -167,6 +167,18 @@ public static class Board
         };
     }
 
+    public static string GetCastlePermissionsAsString()
+    {
+        string permissions = "";
+
+        _ = WhiteCastleKingside ? "K" : "";
+        _ = WhiteCastleQueenside ? "Q" : "";
+        _ = BlackCastleKingside ? "k" : "";
+        _ = BlackCastleQueenside ? "q" : "";
+
+        return permissions == "" ? "-" : permissions;
+    }
+
     public static void SetCastlePermissions(string s)
     {
         WhiteCastleKingside = false; WhiteCastleQueenside = false;
@@ -358,6 +370,8 @@ public static class Board
 
     #endregion
 
+    #region ESSENTIELL
+
     /// <summary>
     /// Die Methode <c>Initialize</c> wird ausgefuehrt,
     /// wenn eine neue Instanz der Klasse geschaffen wird.
@@ -378,8 +392,14 @@ public static class Board
         SetEnPassantSquare(-1);
     }
 
-    public static void MakeMove(Move move, bool generateMoves = false)
+    #endregion
+
+    #region ZUG
+
+    public static void MakeMove(Move move, bool calculation = false)
     {
+        if (GameManager.instance.DebugMode) Debug.Log("MakeMove: " + DesignateMove(move));
+
         // Position der Figuren
         int piece = Square120[move.StartSquare];
         int position = Array.IndexOf(PiecesList[piece], move.StartSquare);
@@ -434,8 +454,8 @@ public static class Board
         }
 
         // En Passant Square
-        _EnPassantSquare = EnPassantSquare;
         SetEnPassantSquare(move.EnPassant);
+        _EnPassantSquare = EnPassantSquare;
 
         // Player to move
         WhiteToMove = !WhiteToMove;
@@ -444,12 +464,12 @@ public static class Board
         MoveCount++;
 
         // Generiert die naechsten Zuege
-        if (generateMoves) GameManager.instance.SetPossibleMoves();
+        if (!calculation) GameManager.instance.SetPossibleMoves();
     }
 
     public static void UnmakeMove(Move move)
     {
-        //Debug.Log("Unmake Move: " + DesignateMove(move));
+        if (GameManager.instance.DebugMode) Debug.Log("UnmakeMove: " + DesignateMove(move));
 
         // Position der Figuren
         int piece = Square120[move.TargetSquare];
@@ -503,10 +523,12 @@ public static class Board
         if (move.Type == 2)
         {
             EnPassant(move, true);
+            SetEnPassantSquare(move.TargetSquare);
         }
 
         // En Passant Square
-        SetEnPassantSquare(_EnPassantSquare);
+        if (move.EnPassant != -1) SetEnPassantSquare(-1);
+        else SetEnPassantSquare(_EnPassantSquare);
 
         // Player to move
         WhiteToMove = !WhiteToMove;
@@ -622,18 +644,19 @@ public static class Board
     private static void EnPassant(Move move, bool undo = false)
     {
         if (EnPassantSquare == 0) Debug.LogError($"En Passant Error! EnPassantSquare's index can't be 0.");
-        int pawnSq = EnPassantSquare;
+        int pawnSq = undo ? move.TargetSquare : EnPassantSquare;
         pawnSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
 
         // Werte bei undo sind doppelt gedreht, da WhiteToMove noch nicht
         // aktualisiert wurde und es sich um den gegnerischen Bauern handelt.
-        int pawnValue = undo ? (WhiteToMove ? 18 : 10) : (WhiteToMove ? 10 : 18);
+        int pawnValue = undo ? (WhiteToMove ? 10 : 18) : (WhiteToMove ? 18 : 10);
 
         if (!undo)
         {
-            if (Square120[pawnSq] != (WhiteToMove ? 10 : 18)) Debug.LogError($"En Passant Error! Pawn Square: {pawnSq} {Square120[pawnSq]}");
+            Debug.Log(EnPassantSquare);
+            Debug.Log($"Pawn Square: {pawnSq} Pawn Value: {Square120[pawnSq]} Theoretical Value: {pawnValue}");
 
-            // Aktualisiert die Position des geschlagenen Bauern.
+            // Loescht den geschlagenen Bauer.
             int pos = Array.IndexOf(PiecesList[Square120[pawnSq]], pawnSq);
             PiecesList[Square120[pawnSq]][pos] = 0;
 
@@ -642,6 +665,9 @@ public static class Board
         }
         else
         {
+            Debug.Log(EnPassantSquare);
+            Debug.Log($"Pawn Square: {pawnSq} Pawn Value: {Square120[pawnSq]} Theoretical Value: {pawnValue}");
+
             for (int i = 0; i < PiecesList[pawnValue].Length; i++)
             {
                 // Speichert die Figurenposition bei der naechsten freien Stelle.
@@ -657,5 +683,7 @@ public static class Board
         }
         
     }
+
+    #endregion
 
 }
