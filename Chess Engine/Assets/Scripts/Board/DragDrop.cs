@@ -36,23 +36,33 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        // Laesst die Visualisierung der Zuege nur bei eigenen Figuren zu.
-        slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
-        int piece = Board.PieceOnSquare(slotNum);
-        int friendlyColor = Board.GetPlayerColor();
-
-        if (Piece.IsColor(piece, friendlyColor))
+        if (Board.GetGameMode() == Board.Mode.HumanComputer)
         {
-            // Aktiviert die Visualisierung aller möglichen Züge.
+            // Laesst die Visualisierung der Zuege nur bei eigenen Figuren zu.
+            slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
+            int piece = Board.PieceOnSquare(slotNum);
+            int friendlyColor = Board.GetPlayerColor();
+
+            if (Piece.IsColor(piece, friendlyColor))
+            {
+                // Aktiviert die Visualisierung aller möglichen Züge.
+                GameManager.instance.DeactivateMoveVisualisation();
+                GameManager.instance.ActivateMoveVisualization(slotNum);
+            }
+            else
+            {
+                // Gegnerische Figur.
+                ExitDragDrop();
+            }
+        } 
+        else if (Board.GetGameMode() == Board.Mode.Testing)
+        {
+            slotNum = (int)Variables.Object(gameObject).Get("SquareNum");
+
             GameManager.instance.DeactivateMoveVisualisation();
             GameManager.instance.ActivateMoveVisualization(slotNum);
         }
-        else
-        {
-            // Gegnerische Figur.
-            ExitDragDrop();
-        }
-
+        
         GameManager.instance.MakePhysicalMove(gameObject, slotNum);
     }
 

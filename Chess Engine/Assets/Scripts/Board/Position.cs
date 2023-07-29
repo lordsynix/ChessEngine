@@ -60,11 +60,11 @@ public class Position
 
         foreach (Move move in GetPossibleMoves())
         {
-            Board.MakeMove(move, true);
+            Board.MakeMove(move, true, this);
 
-            ChildPositions.Add(new(Board.GetPieceLocation(), Board.GetWhiteToMove(), Board.GetEnPassantSquare()));
+            ChildPositions.Add(new(Board.GetPieceLocation(), Board.GetWhiteToMove(), move.EnPassant));
 
-            Board.UnmakeMove(move);
+            Board.UnmakeMove(move, this);
         }
 
         return ChildPositions;

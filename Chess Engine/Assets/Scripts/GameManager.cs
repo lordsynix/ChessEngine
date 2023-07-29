@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
 
     private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
     // private const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
-    // private const string testFEN2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w ";
+    // private const string testFEN2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w -";
 
     private List<int> usedPuzzlesId = new();
 
@@ -74,6 +74,8 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+
+        Board.SetGameMode(Board.Mode.Testing);
     }
 
     private void Start()
@@ -123,6 +125,10 @@ public class GameManager : MonoBehaviour
             {
                 if (DebugMode) UpdateGameTree(currentPosition);
             }
+        }
+        else
+        {
+            if (DebugMode) UpdateGameTree(currentPosition);
         }
     }
 

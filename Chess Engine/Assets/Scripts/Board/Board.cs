@@ -15,7 +15,8 @@ public static class Board
     {
         HumanComputer,
         HumanHuman,
-        ComputerComputer
+        ComputerComputer,
+        Testing
     }
 
     private static Mode GameMode;
@@ -396,9 +397,21 @@ public static class Board
 
     #region ZUG
 
-    public static void MakeMove(Move move, bool calculation = false)
+    public static void MakeMove(Move move, bool calculation = false, Position pos = null)
     {
         if (GameManager.instance.DebugMode) Debug.Log("MakeMove: " + DesignateMove(move));
+
+        if (pos != null)
+        {
+            PiecesList = pos.PiecesList;
+
+            // Store current EnPassantSquare in Position
+            EnPassantSquare = pos.EnPassantSquare;
+        }
+        else
+        {
+            EnPassantSquare = move.EnPassant;
+        }
 
         // Position der Figuren
         int piece = Square120[move.StartSquare];
@@ -453,10 +466,6 @@ public static class Board
             EnPassant(move);
         }
 
-        // En Passant Square
-        SetEnPassantSquare(move.EnPassant);
-        _EnPassantSquare = EnPassantSquare;
-
         // Player to move
         WhiteToMove = !WhiteToMove;
 
@@ -467,9 +476,19 @@ public static class Board
         if (!calculation) GameManager.instance.SetPossibleMoves();
     }
 
-    public static void UnmakeMove(Move move)
+    public static void UnmakeMove(Move move, Position pos = null)
     {
         if (GameManager.instance.DebugMode) Debug.Log("UnmakeMove: " + DesignateMove(move));
+
+        if (pos != null)
+        {
+            PiecesList = pos.PiecesList;
+            EnPassantSquare = pos.EnPassantSquare;
+        }
+        else
+        {
+            pos.EnPassantSquare = move.EnPassant;
+        }
 
         // Position der Figuren
         int piece = Square120[move.TargetSquare];
@@ -523,12 +542,10 @@ public static class Board
         if (move.Type == 2)
         {
             EnPassant(move, true);
-            SetEnPassantSquare(move.TargetSquare);
         }
 
         // En Passant Square
-        if (move.EnPassant != -1) SetEnPassantSquare(-1);
-        else SetEnPassantSquare(_EnPassantSquare);
+        SetEnPassantSquare(EnPassantSquare);
 
         // Player to move
         WhiteToMove = !WhiteToMove;
@@ -643,6 +660,7 @@ public static class Board
 
     private static void EnPassant(Move move, bool undo = false)
     {
+        EnPassantSquare = move.TargetSquare;
         if (EnPassantSquare == 0) Debug.LogError($"En Passant Error! EnPassantSquare's index can't be 0.");
         int pawnSq = undo ? move.TargetSquare : EnPassantSquare;
         pawnSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
@@ -653,9 +671,6 @@ public static class Board
 
         if (!undo)
         {
-            Debug.Log(EnPassantSquare);
-            Debug.Log($"Pawn Square: {pawnSq} Pawn Value: {Square120[pawnSq]} Theoretical Value: {pawnValue}");
-
             // Loescht den geschlagenen Bauer.
             int pos = Array.IndexOf(PiecesList[Square120[pawnSq]], pawnSq);
             PiecesList[Square120[pawnSq]][pos] = 0;
@@ -665,9 +680,6 @@ public static class Board
         }
         else
         {
-            Debug.Log(EnPassantSquare);
-            Debug.Log($"Pawn Square: {pawnSq} Pawn Value: {Square120[pawnSq]} Theoretical Value: {pawnValue}");
-
             for (int i = 0; i < PiecesList[pawnValue].Length; i++)
             {
                 // Speichert die Figurenposition bei der naechsten freien Stelle.

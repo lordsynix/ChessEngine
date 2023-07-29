@@ -44,11 +44,14 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         oldSlotNum = (int)Variables.Object(pointerDrag).Get("SquareNum");
 
         // Stellt sicher, dass der Spieler nur seine Figuren bewegen kann.
-        if (!engineMove)
+        if (Board.GetGameMode() != Board.Mode.Testing)
         {
-            int piece = Board.PieceOnSquare(oldSlotNum);
-            int friendlyColor = Board.GetPlayerColor();
-            if (!Piece.IsColor(piece, friendlyColor)) return;
+            if (!engineMove)
+            {
+                int piece = Board.PieceOnSquare(oldSlotNum);
+                int friendlyColor = Board.GetPlayerColor();
+                if (!Piece.IsColor(piece, friendlyColor)) return;
+            }
         }
 
         // Der eingegebene Zug.
