@@ -41,7 +41,9 @@ public static class Engine
 
             int index = currentPosition.ChildPositions.IndexOf(pos);
             Move m = currentPosition.PossibleMoves[index];
+
             if (m.StartSquare == kingSq) kingSq = m.TargetSquare;
+            // TODO Check if castling squares are attacked. (m.Type == 3 || m.Type == 4)
 
             foreach (Move move in pos.PossibleMoves)
             {

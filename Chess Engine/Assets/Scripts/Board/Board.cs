@@ -212,6 +212,26 @@ public static class Board
         BlackCastleQueenside = blackCastleQueenside;
     }
 
+    public static void SetWhiteCastleKingside(bool whiteCastleKingside)
+    {
+        WhiteCastleKingside = whiteCastleKingside;
+    }
+
+    public static void SetWhiteCastleQueenside(bool whiteCastleQueenside)
+    {
+        WhiteCastleQueenside = whiteCastleQueenside;
+    }
+
+    public static void SetBlackCastleKingside(bool blackCastleKingside)
+    {
+        BlackCastleKingside = blackCastleKingside;
+    }
+
+    public static void SetBlackCastleQueenside(bool blackCastleQueenside)
+    {
+        BlackCastleQueenside = blackCastleQueenside;
+    }
+
     public static int GetMoveCount()
     {
         return MoveCount;
@@ -403,14 +423,21 @@ public static class Board
 
         if (pos != null)
         {
+            // Verwendet die Werte der uebergebenen Position.
             PiecesList = pos.PiecesList;
-
-            // Store current EnPassantSquare in Position
             EnPassantSquare = pos.EnPassantSquare;
+
+            // Aktualisiert die Rochaderechte.
+            SetCastlePermissionsWithBools(pos.WhiteCastleKingside, pos.WhiteCastleQueenside,
+                                          pos.BlackCastleKingside, pos.BlackCastleQueenside);
         }
         else
         {
+            // Verwendet die jetzigen Werte.
             EnPassantSquare = move.EnPassant;
+
+            // Aktualisiert die Rochaderechte.
+            SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
         }
 
         // Position der Figuren
@@ -482,12 +509,22 @@ public static class Board
 
         if (pos != null)
         {
+            // Verwendet die Werte der uebergebenen Position.
             PiecesList = pos.PiecesList;
             EnPassantSquare = pos.EnPassantSquare;
+
+            // Aktualisiert die Rochaderechte.
+            SetCastlePermissionsWithBools(pos.WhiteCastleKingside, pos.WhiteCastleQueenside, 
+                                          pos.BlackCastleKingside, pos.BlackCastleQueenside);
         }
         else
         {
-            pos.EnPassantSquare = move.EnPassant;
+            // Verwendet die jetzigen Werte.
+            EnPassantSquare = move.EnPassant;
+            if (move.Type == 2) EnPassantSquare = move.TargetSquare;
+
+            // Aktualisiert die Rochaderechte.
+            SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
         }
 
         // Position der Figuren
@@ -509,7 +546,7 @@ public static class Board
         }
 
         // Aktualisiert die Rochaderechte
-        SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
+        UpdateCastlePermissions(move, piece);
 
         // Rochade
         if (move.Type == 3) Castle(move, true, true);
@@ -544,9 +581,6 @@ public static class Board
             EnPassant(move, true);
         }
 
-        // En Passant Square
-        SetEnPassantSquare(EnPassantSquare);
-
         // Player to move
         WhiteToMove = !WhiteToMove;
 
@@ -562,6 +596,7 @@ public static class Board
         _BlackCastleKingside = BlackCastleKingside;
         _BlackCastleQueenside = BlackCastleQueenside;
 
+        // Loescht die Rochaderechte, wenn sich der Koenig bewegt hat.
         if (Piece.IsType(piece, Piece.KING))
         {
             if (Piece.IsColor(piece, Piece.WHITE))
@@ -575,6 +610,7 @@ public static class Board
                 BlackCastleQueenside = false;
             }
         }
+        // Loescht die Rochaderechte fuer die jeweilige Seite, wenn sich ein Turm bewegt hat.
         if (Piece.IsType(piece, Piece.ROOK))
         {
             if (Piece.IsColor(piece, Piece.WHITE))
@@ -660,7 +696,6 @@ public static class Board
 
     private static void EnPassant(Move move, bool undo = false)
     {
-        EnPassantSquare = move.TargetSquare;
         if (EnPassantSquare == 0) Debug.LogError($"En Passant Error! EnPassantSquare's index can't be 0.");
         int pawnSq = undo ? move.TargetSquare : EnPassantSquare;
         pawnSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;

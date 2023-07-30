@@ -316,17 +316,14 @@ public static class MoveGenerator
         for (int i = 1; i < 4; i++)
         {
             int square = startSquare + i * (offset / 2);
-            //Debug.Log("Checking for square: " + square);
 
             if (square != 28 && square != 98)
             {
                 if (square120[square] != 0)
                 {
-                    //Debug.Log("Piece between castling pieces");
                     permission = false;
                     break;
                 }
-                // TODO Check if squares are attacked
             }
         }
 
@@ -335,7 +332,8 @@ public static class MoveGenerator
         {
             if (square120[startSquare + 3] != (Piece.ROOK | friendlyColor))
             {
-                //Debug.Log("Castling piece is not a Rook");
+                if (friendlyColor == Piece.WHITE) Board.SetWhiteCastleKingside(false);
+                else Board.SetBlackCastleKingside(false);
                 permission = false;
             }
 
@@ -344,7 +342,8 @@ public static class MoveGenerator
         {
             if (square120[startSquare - 4] != (Piece.ROOK | friendlyColor))
             {
-                //Debug.Log("Castling piece is not a Rook");
+                if (friendlyColor == Piece.WHITE) Board.SetWhiteCastleQueenside(false);
+                else Board.SetBlackCastleQueenside(false);
                 permission = false;
             }
 
