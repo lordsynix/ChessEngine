@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,8 +11,12 @@ public static class Engine
 
     public static Position currentPosition;
 
+    public static Dictionary<int, int> positionEvaluation = new();
+
     public static int friendlyColor;
     public static int opponentColor;
+
+    private static int positionIndex = 0;
 
     const int pawnValue = 100;
     const int knightValue = 300;
@@ -26,15 +32,12 @@ public static class Engine
 
         currentPosition = new(Board.GetPieceLocation(), Board.GetWhiteToMove(), Board.GetEnPassantSquare());
 
-        // Evaluiert die beste Position nach einer Zugabfolge.
-        Minimax(currentPosition, 1, friendlyColor == Piece.WHITE);
-
         // Stellt sicher, dass der Koenig nicht geschlagen werden kann.
         List<Move> illegalMoves = new();
         List<Position> illegalPositions = new();
 
         int responses = 0;
-        foreach (Position pos in currentPosition.ChildPositions)
+        foreach (Position pos in currentPosition.GetChildPositions())
         {
             responses += pos.PossibleMoves.Count;
             int kingSq = pos.PiecesList[Piece.KING | friendlyColor][0];
@@ -64,12 +67,20 @@ public static class Engine
         {
             currentPosition.GameOver = true;
             GameManager.instance.CheckMate();
+            return currentPosition;
         }
+
+        // Evaluiert die beste Position nach einer Zugabfolge.
+        positionEvaluation = new();
+        int evaluation = Minimax(currentPosition, 1, friendlyColor == Piece.WHITE);
+        int posIndex = positionEvaluation.FirstOrDefault(x => x.Value == evaluation).Key;
+        currentPosition.bestMove = currentPosition.PossibleMoves[posIndex];
 
         /*Debug.Log($"{currentPosition.PossibleMoves.Count} possible moves and {responses} possible responses -------- " +
                   $"Time: {(Time.realtimeSinceStartup - startTime) * 1000} ms");*/
 
         GameManager.instance.SetPositionStats(currentPosition.PossibleMoves.Count, responses);
+        positionIndex = 0;
 
         return currentPosition;
     }
@@ -77,7 +88,12 @@ public static class Engine
     public static int Minimax(Position pos, int depth, bool isWhite)
     {
         if (depth == 0 || pos.GameOver)
-            return Evaluate(pos);
+        {
+            int evaluation = Evaluate(pos);
+            positionEvaluation.Add(positionIndex, evaluation);
+            positionIndex++;
+            return evaluation;
+        }
 
         if (isWhite)
         {
@@ -135,12 +151,15 @@ public static class Engine
     public static int Evaluate(Position pos)
     {
         int material = 0;
-        /*
-        int[] sides = { pos.FriendlyColor, pos.OpponentColor };
+
+        int[] sides = { Piece.WHITE, Piece.BLACK };
 
         foreach(int color in sides)
         {
-            int multiplier = (color == pos.FriendlyColor) ? -1 : 1;
+            // Positive Evaluation bedeutet Vorteil fuer Weiss, negativ fuer Schwarz.
+            int colorMultiplier = (color == Piece.WHITE) ? 1 : -1;
+
+            // Evaluiert den Wert der Figuren fuer beide Seiten.
             for (int pieceType = color + 1; pieceType < color + 7; pieceType++)
             {
                 if (pos.PiecesList[pieceType].Length == 0) continue;
@@ -155,13 +174,13 @@ public static class Engine
 
                 if (count == 0) continue;
 
-                if (Piece.IsType(pieceType, Piece.PAWN)) material -= count * pawnValue * multiplier;
-                else if (Piece.IsType(pieceType, Piece.KNIGHT)) material -= count * knightValue * multiplier;
-                else if (Piece.IsType(pieceType, Piece.BISHOP)) material -= count * bishopValue * multiplier;
-                else if (Piece.IsType(pieceType, Piece.ROOK)) material -= count * rookValue * multiplier;
-                else if (Piece.IsType(pieceType, Piece.QUEEN)) material -= count * queenValue * multiplier;
+                if (Piece.IsType(pieceType, Piece.PAWN)) material += count * pawnValue * colorMultiplier;
+                else if (Piece.IsType(pieceType, Piece.KNIGHT)) material += count * knightValue * colorMultiplier;
+                else if (Piece.IsType(pieceType, Piece.BISHOP)) material += count * bishopValue * colorMultiplier;
+                else if (Piece.IsType(pieceType, Piece.ROOK)) material += count * rookValue * colorMultiplier;
+                else if (Piece.IsType(pieceType, Piece.QUEEN)) material += count * queenValue * colorMultiplier;
             }
-        }*/
+        }
         return material;
     }
 }

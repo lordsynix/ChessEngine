@@ -274,6 +274,11 @@ public static class Board
         return PiecesList;
     }
 
+    public static void SetPieceLocationWithList(List<int[]> pieces)
+    {
+        PiecesList = pieces;
+    }
+
     public static int PieceOnSquare(int square)
     {
         return Square120[square];
@@ -419,7 +424,7 @@ public static class Board
 
     public static void MakeMove(Move move, bool calculation = false, Position pos = null)
     {
-        if (GameManager.instance.DebugMode) Debug.Log("MakeMove: " + DesignateMove(move));
+        //if (GameManager.instance.DebugMode) Debug.Log("MakeMove: " + DesignateMove(move));
 
         if (pos != null)
         {
@@ -505,13 +510,21 @@ public static class Board
 
     public static void UnmakeMove(Move move, Position pos = null)
     {
-        if (GameManager.instance.DebugMode) Debug.Log("UnmakeMove: " + DesignateMove(move));
+        //if (GameManager.instance.DebugMode) Debug.Log("UnmakeMove: " + DesignateMove(move));
 
         if (pos != null)
         {
             // Verwendet die Werte der uebergebenen Position.
-            PiecesList = pos.PiecesList;
             EnPassantSquare = pos.EnPassantSquare;
+
+            PiecesList = new(pos.PiecesList.Count);
+
+            foreach (int[] pieceType in pos.PiecesList)
+            {
+                int[] copiedArray = new int[pieceType.Length];
+                Array.Copy(pieceType, copiedArray, pieceType.Length);
+                PiecesList.Add(copiedArray);
+            }
 
             // Aktualisiert die Rochaderechte.
             SetCastlePermissionsWithBools(pos.WhiteCastleKingside, pos.WhiteCastleQueenside, 
@@ -586,6 +599,8 @@ public static class Board
 
         // Senkt die Anzahl der gespielten Zuege
         MoveCount--;
+
+        if (pos != null) pos.PiecesList = PiecesList;
     }
 
     private static void UpdateCastlePermissions(Move move, int piece)

@@ -7,7 +7,7 @@ public class Position
 {
     public bool GameOver = false;
 
-    // Position
+    // Position Variables
     public bool WhiteToMove;
     public int EnPassantSquare;
 
@@ -16,10 +16,13 @@ public class Position
     public bool BlackCastleKingside;
     public bool BlackCastleQueenside;
 
+    // Position Informations
+    public Move bestMove;
+
     public List<Position> ChildPositions;
 
     public List<Move> PossibleMoves;
-    public List<int[]> PiecesList;
+    public List<int[]> PiecesList { get; set; }
 
     public Position(List<int[]> piecesList, bool whiteToMove, int enPassantSquare)
     {
@@ -62,7 +65,10 @@ public class Position
         {
             Board.MakeMove(move, true, this);
 
-            ChildPositions.Add(new(Board.GetPieceLocation(), Board.GetWhiteToMove(), move.EnPassant));
+            var piecesList = Board.GetPieceLocation();
+
+            Position childPosition = new(piecesList, Board.GetWhiteToMove(), move.EnPassant);
+            ChildPositions.Add(childPosition);
 
             Board.UnmakeMove(move, this);
         }
@@ -74,5 +80,4 @@ public class Position
     {
         return false;
     }
-
 }

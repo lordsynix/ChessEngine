@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
     {
         instance = this;
 
-        Board.SetGameMode(Board.Mode.Testing);
+        //Board.SetGameMode(Board.Mode.Testing);
     }
 
     private void Start()
@@ -112,6 +112,8 @@ public class GameManager : MonoBehaviour
     {
         Position currentPosition = Engine.Search();
 
+        if (currentPosition.GameOver) return;
+
         possibleMoves = currentPosition.GetPossibleMoves();
 
         // Ueberprueft, ob die Engine den naechsten Zug macht.
@@ -119,7 +121,7 @@ public class GameManager : MonoBehaviour
         {
             if (Board.GetPlayerColor() != (Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK) && !currentPosition.GameOver)
             {
-                StartCoroutine(MakeEngineMove(possibleMoves[UnityEngine.Random.Range(0, possibleMoves.Count)]));
+                StartCoroutine(MakeEngineMove(currentPosition.bestMove));
             }
             else
             {
@@ -515,25 +517,28 @@ public class GameManager : MonoBehaviour
 
     public void UpdateGameTree(Position pos)
     {
+        if (pos.PossibleMoves.Count != pos.ChildPositions.Count)
+            Debug.LogError("Possible Positions can't differ from Possible Moves");
+
+        // Loescht alte Informationen.
         foreach (Transform child in gameTreeRoot.transform)
         {
             Destroy(child.gameObject);
         }
 
-        foreach(Move move in pos.PossibleMoves)
+        foreach(Position childPos in pos.ChildPositions)
         {
-            var moveGO = Instantiate(movePrefab, gameTreeRoot.transform);
-            moveGO.name = Board.DesignateMove(move);
+            int index = pos.ChildPositions.IndexOf(childPos);
 
-            foreach (Move responseMove in pos.ChildPositions[pos.PossibleMoves.IndexOf(move)].PossibleMoves)
+            var moveGO = Instantiate(movePrefab, gameTreeRoot.transform);
+            moveGO.name = Board.DesignateMove(pos.PossibleMoves[index]) + " - " + Engine.positionEvaluation[index];
+
+            foreach (Move responseMove in childPos.PossibleMoves)
             {
                 var childMoveGO = Instantiate(movePrefab, moveGO.transform);
-                childMoveGO.name = Board.DesignateMove(responseMove);
+                childMoveGO.name = Board.DesignateMove(responseMove) + " - ";
             }
         }
-
-        if (pos.PossibleMoves.Count != pos.ChildPositions.Count) 
-            Debug.LogError("Possible Positions can't differ from Possible Moves");
     }
 
     #endregion
