@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
     public InputField fenInputField;
     public Text debugSideToMove;
     public Text castlePermissions;
+    public Text enPassantSquare;
 
     [HideInInspector] public int latestSlotNum;
     [HideInInspector] public GameObject startSquare;
@@ -377,6 +378,9 @@ public class GameManager : MonoBehaviour
         if (permissions[2]) s += 'k';
         if (permissions[3]) s += 'q';
         castlePermissions.text = s + "</b>";
+
+        // Zeigt das aktuelle EnPassant Feld an.
+        enPassantSquare.text = Board.GetEnPassantSquare().ToString();
 
         historyWindow.SetActive(false);
         debugWindow.SetActive(true);

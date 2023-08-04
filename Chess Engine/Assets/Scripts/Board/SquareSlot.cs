@@ -68,8 +68,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         // Laedt den gegebenen Zug
         Move move = possibleMoves.Find(m => m.StartSquare == oldSlotNum && m.TargetSquare == slotNum);
 
-        // Initiiert einen Zug, falls es sich um eine Umwandlung handelt.
-        if (move.Promotion != -1)
+        // Initiiert eine Umwandlung, falls es sich um einen Menschen handelt.
+        if (move.Promotion != -1 && Board.GetPlayerColor() == (Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK))
         {
             GameManager.instance.ActivatePromotionVisuals(move);
             curPromotionPointerDrag = pointerDrag;

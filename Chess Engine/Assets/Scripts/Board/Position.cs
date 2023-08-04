@@ -66,7 +66,6 @@ public class Position
             Board.MakeMove(move, true, this);
 
             var piecesList = Board.GetPieceLocation();
-
             Position childPosition = new(piecesList, Board.GetWhiteToMove(), move.EnPassant);
             ChildPositions.Add(childPosition);
 

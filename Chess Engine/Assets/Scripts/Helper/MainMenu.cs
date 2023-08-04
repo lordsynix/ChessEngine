@@ -8,7 +8,6 @@ public class MainMenu : MonoBehaviour
 {
     public GameObject usernameMenu;
     public InputField usernameInputField;
-    public Text usernameText;
 
     private string username;
 
@@ -32,8 +31,7 @@ public class MainMenu : MonoBehaviour
         if (string.IsNullOrEmpty(username))
         {
             usernameMenu.SetActive(true);
-        } 
-        else usernameText.text = username;
+        }
     }
 
     #region Buttons
@@ -63,7 +61,6 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.SetString("username", username);
 
         usernameMenu.SetActive(false);
-        usernameText.text = username;
     }
 
     #endregion

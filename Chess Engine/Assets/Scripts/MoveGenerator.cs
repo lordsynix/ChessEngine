@@ -235,7 +235,6 @@ public static class MoveGenerator
             if (targetSquare == Board.GetEnPassantSquare())
             {
                 moves.Add(new Move(startSquare, targetSquare, 2));
-
             }
         }
 
