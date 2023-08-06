@@ -416,6 +416,8 @@ public static class Board
         SetSquare64(new int[64]);
         SetWhiteToMove(true);
         SetEnPassantSquare(-1);
+        MoveCount = 0;
+        PlayerColor = -1;
     }
 
     #endregion
