@@ -10,6 +10,8 @@ using UnityEngine.UI;
 /// </summary>
 public class BoardGeneration : MonoBehaviour
 {
+    public static BoardGeneration instance;
+
     public GameObject squarePrefab;
 
     public Sprite[] pieces = new Sprite[23];
@@ -24,16 +26,10 @@ public class BoardGeneration : MonoBehaviour
     [SerializeField] private Color lightCol = Color.white; // #DDC39C
     [SerializeField] private Color darkCol = Color.black; // #936D4B
 
-    #region Instance
-
-    public static BoardGeneration instance;
-
     private void Awake()
     {
         instance = this;    
     }
-
-    #endregion
 
     private void Start()
     {
@@ -44,8 +40,9 @@ public class BoardGeneration : MonoBehaviour
     {
         isWhite = Board.GetPlayerColor() == Piece.WHITE;
         sqNum = isWhite ? 0 : 63;
-        
+
         // Erstellt das Muster des Schachbretts fuer alle 64 Felder
+        // vgl. mit https://www.youtube.com/watch?v=U4ogK0MIzqk&t=27s 0:27s
         for (int rank = 0; rank < 8; rank++)
         {
             for (int file = 0; file < 8; file++)
@@ -98,6 +95,8 @@ public class BoardGeneration : MonoBehaviour
             }
             go.GetComponent<Image>().sprite = pieces[squares[i]];
         }
+        LogManager.Instance.LogMessage($"Successfully generated pieces");
+        LogManager.Instance.LogMessage($"--------------------------------");
     }
 
     /// <summary>

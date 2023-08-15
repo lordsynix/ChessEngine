@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -38,9 +39,8 @@ public static class Board
 
     private static List<int[]> PiecesList = new();
 
-    private static int LastCapture;
-
-    private static int _EnPassantSquare;
+    private static List<int> LastCaptures = new();
+    private static List<int> LastEnPassant = new();
 
     private static bool _WhiteCastleKingside;
     private static bool _WhiteCastleQueenside;
@@ -87,6 +87,8 @@ public static class Board
     public static void SetGameMode(Mode mode)
     {
         GameMode = mode;
+
+        LogManager.Instance.LogMessage($"Enter GameMode: {mode}");
     }
 
     /// <summary>
@@ -424,206 +426,164 @@ public static class Board
 
     #region ZUG
 
-    public static void MakeMove(Move move, bool calculation = false, Position pos = null)
+    public static void MakeMove(Move move, bool calculation = false)
     {
-        //if (GameManager.instance.DebugMode) Debug.Log("MakeMove: " + DesignateMove(move));
+        // Aktualisiert die Rochaderechte.
+        SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
 
-        if (pos != null)
+        // Position der Figuren
+        int piece = Square120[move.StartSquare];
+        int position = Array.IndexOf(PiecesList[piece], move.StartSquare);
+        PiecesList[piece][position] = move.TargetSquare;
+
+        if (move.Type == 0 || move.Type == 3 || move.Type == 4)
         {
-            // Verwendet die Werte der uebergebenen Position.
-            PiecesList = pos.PiecesList;
-            EnPassantSquare = pos.EnPassantSquare;
+            LastCaptures.Add(Piece.NONE);
+        }
 
-            // Aktualisiert die Rochaderechte.
-            SetCastlePermissionsWithBools(pos.WhiteCastleKingside, pos.WhiteCastleQueenside,
-                                          pos.BlackCastleKingside, pos.BlackCastleQueenside);
+        else if (move.Type == 1)
+        {
+            int enemyPiece = Square120[move.TargetSquare];
+            int enemyPos = Array.IndexOf(PiecesList[enemyPiece], move.TargetSquare);
+
+            //Debug.Log($"Move: {DesignateMove(move)} Piece: {enemyPiece} Positions: {move.TargetSquare} Count: {PiecesList[enemyPiece].Length}");
+            
+            PiecesList[enemyPiece][enemyPos] = 0;
+
+            // Speichert die geschlagenen Figuren.
+            LastCaptures.Add(enemyPiece);
+        }
+
+        // Aktualisiert die Rochaderechte
+        UpdateCastlePermissions(move, piece);
+
+        // Rochade
+        if (move.Type == 3) Castle(move, true);
+        if (move.Type == 4) Castle(move, false);
+
+        // Verwandlung
+        if (move.Promotion != -1)
+        {
+            Promotion(move, piece, position);
+        }
+
+        // Zielfeld
+        if (move.Promotion == -1)
+        {
+            Square120[move.TargetSquare] = Square120[move.StartSquare];
+            Square64[ConvertIndex120To64(move.TargetSquare)] = Square120[move.StartSquare];
         }
         else
         {
-            // Verwendet die jetzigen Werte.
-            EnPassantSquare = move.EnPassant;
-
-            // Aktualisiert die Rochaderechte.
-            SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
+            LastCaptures.Add(Square120[move.TargetSquare]);
+            Square120[move.TargetSquare] = move.Promotion;
+            Square64[ConvertIndex120To64(move.TargetSquare)] = move.Promotion;
         }
 
-        // Position der Figuren
-        try
+        // Startfeld
+        Square120[move.StartSquare] = 0;
+        Square64[ConvertIndex120To64(move.StartSquare)] = 0;
+
+        // En Passant Schlag
+        if (move.Type == 2)
         {
-            int piece = Square120[move.StartSquare];
-            int position = Array.IndexOf(PiecesList[piece], move.StartSquare);
-            PiecesList[piece][position] = move.TargetSquare;
-
-            if (move.Type == 0)
-            {
-                LastCapture = Piece.NONE;
-            }
-
-            else if (move.Type == 1)
-            {
-                LastCapture = Square120[move.TargetSquare];
-                int enemyPos = Array.IndexOf(PiecesList[LastCapture], move.TargetSquare);
-                PiecesList[LastCapture][enemyPos] = 0;
-            }
-
-            // Aktualisiert die Rochaderechte
-            UpdateCastlePermissions(move, piece);
-
-            // Rochade
-            if (move.Type == 3) Castle(move, true);
-            if (move.Type == 4) Castle(move, false);
-
-            // Verwandlung
-            if (move.Promotion != -1)
-            {
-                Promotion(move, piece, position);
-            }
-
-            // Zielfeld
-            if (move.Promotion == -1)
-            {
-                Square120[move.TargetSquare] = Square120[move.StartSquare];
-                Square64[ConvertIndex120To64(move.TargetSquare)] = Square120[move.StartSquare];
-            }
-            else
-            {
-                LastCapture = Square120[move.TargetSquare];
-                Square120[move.TargetSquare] = move.Promotion;
-                Square64[ConvertIndex120To64(move.TargetSquare)] = move.Promotion;
-            }
-
-            // Startfeld
-            Square120[move.StartSquare] = 0;
-            Square64[ConvertIndex120To64(move.StartSquare)] = 0;
-
-            // En Passant Schlag
-            if (move.Type == 2)
-            {
-                EnPassant(move);
-            }
-
-            // Player to move
-            WhiteToMove = !WhiteToMove;
-
-            // Erhoeht die Anzahl der gespielten Zuege
-            MoveCount++;
-
-            // Generiert die naechsten Zuege
-            if (!calculation) GameManager.instance.SetPossibleMoves();
+            EnPassant(move);
         }
-        catch (Exception ex)
+
+        // En Passant
+        EnPassantSquare = move.EnPassant;
+        LastEnPassant.Add(move.EnPassant);
+
+        // Player to move
+        WhiteToMove = !WhiteToMove;
+
+        // Erhoeht die Anzahl der gespielten Zuege
+        MoveCount++;
+
+        // Generiert die naechsten Zuege
+        if (!calculation)
         {
-            Debug.LogException(ex);
-            /*Debug.Log($"While making move: {move.StartSquare} to {move.TargetSquare}");
-            Debug.Log($"Piece: {Square120[move.StartSquare]} Position: {Array.IndexOf(PiecesList[Square120[move.StartSquare]], move.StartSquare)}");
-            Debug.Log("---------");*/
+            GameManager.instance.SetPossibleMoves();
+            LastCaptures.RemoveAt(0);
         }
     }
 
-    public static void UnmakeMove(Move move, Position pos = null)
+    public static void UnmakeMove(Move move)
     {
-        //if (GameManager.instance.DebugMode) Debug.Log("UnmakeMove: " + DesignateMove(move));
+        // Verwendet die jetzigen Werte.
+        int lastCapture = LastCaptures.Last();
+        int lastEnPassant = LastEnPassant.Last();
 
-        if (pos != null)
+        // Aktualisiert die Rochaderechte.
+        SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
+
+        // Position der Figuren
+        int piece = Square120[move.TargetSquare];
+        int position = Array.IndexOf(PiecesList[piece], move.TargetSquare);
+        PiecesList[piece][position] = move.StartSquare;
+
+        if (move.Type == 1)
         {
-            // Verwendet die Werte der uebergebenen Position.
-            EnPassantSquare = pos.EnPassantSquare;
-
-            PiecesList = new(pos.PiecesList.Count);
-
-            foreach (int[] pieceType in pos.PiecesList)
+            for (int i = 0; i < PiecesList[lastCapture].Length; i++)
             {
-                int[] copiedArray = new int[pieceType.Length];
-                Array.Copy(pieceType, copiedArray, pieceType.Length);
-                PiecesList.Add(copiedArray);
+                // Speichert die Figurenposition bei der naechsten freien Stelle.
+                if (PiecesList[lastCapture][i] == 0)
+                {
+                    PiecesList[lastCapture][i] = move.TargetSquare;
+                    break;
+                }
             }
+        }
 
-            // Aktualisiert die Rochaderechte.
-            SetCastlePermissionsWithBools(pos.WhiteCastleKingside, pos.WhiteCastleQueenside, 
-                                          pos.BlackCastleKingside, pos.BlackCastleQueenside);
+        // Aktualisiert die Rochaderechte
+        UpdateCastlePermissions(move, piece);
+
+        // Rochade
+        if (move.Type == 3) Castle(move, true, true);
+        if (move.Type == 4) Castle(move, false, true);
+
+        // Verwandlung
+        if (move.Promotion != -1)
+        {
+            Promotion(move, piece, position, true);
+
+            // Startfeld
+            int friendlyColor = (move.Promotion < Piece.BLACK) ? Piece.WHITE : Piece.BLACK;
+
+            Square120[move.StartSquare] = friendlyColor | Piece.PAWN;
+            Square64[ConvertIndex120To64(move.StartSquare)] = Square120[friendlyColor | Piece.PAWN];
         }
         else
         {
-            // Verwendet die jetzigen Werte.
-            EnPassantSquare = move.EnPassant;
-            if (move.Type == 2) EnPassantSquare = move.TargetSquare;
-
-            // Aktualisiert die Rochaderechte.
-            SetCastlePermissionsWithBools(_WhiteCastleKingside, _WhiteCastleQueenside, _BlackCastleKingside, _BlackCastleQueenside);
+            // Startfeld
+            Square120[move.StartSquare] = Square120[move.TargetSquare];
+            Square64[ConvertIndex120To64(move.StartSquare)] = Square120[move.TargetSquare];
         }
 
-        try
+        // Zielfeld
+        Square120[move.TargetSquare] = lastCapture;
+        Square64[ConvertIndex120To64(move.TargetSquare)] = lastCapture;
+
+
+        // En Passant Schlag
+        if (move.Type == 2)
         {
-            // Position der Figuren
-            int piece = Square120[move.TargetSquare];
-            int position = Array.IndexOf(PiecesList[piece], move.TargetSquare);
-            PiecesList[piece][position] = move.StartSquare;
-
-            if (move.Type == 1)
-            {
-                for (int i = 0; i < PiecesList[LastCapture].Length; i++)
-                {
-                    // Speichert die Figurenposition bei der naechsten freien Stelle.
-                    if (PiecesList[LastCapture][i] == 0)
-                    {
-                        PiecesList[LastCapture][i] = move.TargetSquare;
-                        break;
-                    }
-                }
-            }
-
-            // Aktualisiert die Rochaderechte
-            UpdateCastlePermissions(move, piece);
-
-            // Rochade
-            if (move.Type == 3) Castle(move, true, true);
-            if (move.Type == 4) Castle(move, false, true);
-
-            // Verwandlung
-            if (move.Promotion != -1)
-            {
-                Promotion(move, piece, position, true);
-
-                // Startfeld
-                int friendlyColor = (move.Promotion < Piece.BLACK) ? Piece.WHITE : Piece.BLACK;
-
-                Square120[move.StartSquare] = friendlyColor | Piece.PAWN;
-                Square64[ConvertIndex120To64(move.StartSquare)] = Square120[friendlyColor | Piece.PAWN];
-            }
-            else
-            {
-                // Startfeld
-                Square120[move.StartSquare] = Square120[move.TargetSquare];
-                Square64[ConvertIndex120To64(move.StartSquare)] = Square120[move.TargetSquare];
-            }
-
-            // Zielfeld
-            Square120[move.TargetSquare] = LastCapture;
-            Square64[ConvertIndex120To64(move.TargetSquare)] = LastCapture;
-
-
-            // En Passant Schlag
-            if (move.Type == 2)
-            {
-                EnPassant(move, true);
-            }
-
-            // Player to move
-            WhiteToMove = !WhiteToMove;
-
-            // Senkt die Anzahl der gespielten Zuege
-            MoveCount--;
-
-            if (pos != null) pos.PiecesList = PiecesList;
-        } 
-        catch(Exception ex)
-        {
-            Debug.LogException(ex);
-            /*Debug.Log($"While unmaking move: {move.StartSquare} to {move.TargetSquare}");
-            Debug.Log("---------");*/
+            EnPassant(move, true);
         }
 
-        
+        // En Passant
+        EnPassantSquare = LastEnPassant.Last();
+        LastEnPassant.RemoveAt(LastEnPassant.Count - 1);
+
+        // Loescht die Information zur zuletzt gespielten Figur.
+        LastCaptures.RemoveAt(LastCaptures.Count - 1);
+
+        // Player to move
+        WhiteToMove = !WhiteToMove;
+
+        // Senkt die Anzahl der gespielten Zuege
+        MoveCount--;
+
     }
 
     private static void UpdateCastlePermissions(Move move, int piece)
@@ -734,32 +694,29 @@ public static class Board
 
     private static void EnPassant(Move move, bool undo = false)
     {
-        EnPassantSquare = move.TargetSquare;
-        if (EnPassantSquare == 0) Debug.LogError($"En Passant Error! EnPassantSquare's index can't be 0.");
-        int pawnSq = undo ? move.TargetSquare : EnPassantSquare;
+        int pawnSq = move.TargetSquare;
         pawnSq += (move.StartSquare - move.TargetSquare > 0) ? 10 : -10;
 
         // Werte bei undo sind doppelt gedreht, da WhiteToMove noch nicht
         // aktualisiert wurde und es sich um den gegnerischen Bauern handelt.
         int pawnValue = undo ? (WhiteToMove ? 10 : 18) : (WhiteToMove ? 18 : 10);
-
-        // Ueberprueft, ob versucht wird die eigene Figur zu schlagen.
-        if (pawnValue == Square120[move.TargetSquare]) return;
-
+        
         if (!undo)
         {
-            // Loescht den geschlagenen Bauer.
+            // Loescht den indirekt geschlagenen Bauer.
             int pos = Array.IndexOf(PiecesList[Square120[pawnSq]], pawnSq);
             PiecesList[Square120[pawnSq]][pos] = 0;
 
             Square120[pawnSq] = 0;
             Square64[ConvertIndex120To64(pawnSq)] = 0;
+
+            LastCaptures.Add(pawnValue);
         }
         else
         {
             for (int i = 0; i < PiecesList[pawnValue].Length; i++)
             {
-                // Speichert die Figurenposition bei der naechsten freien Stelle.
+                // Speichert den indirekt geschlagenen Bauer bei der naechsten freien Stelle.
                 if (PiecesList[pawnValue][i] == 0)
                 {
                     PiecesList[pawnValue][i] = pawnSq;
@@ -770,7 +727,6 @@ public static class Board
             Square120[pawnSq] = pawnValue;
             Square64[ConvertIndex120To64(pawnSq)] = pawnValue;
         }
-        
     }
 
     #endregion

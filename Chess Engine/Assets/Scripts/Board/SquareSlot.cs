@@ -123,9 +123,9 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
     void EnPassant(Move move)
     {
-        int enPasSq = Board.ConvertIndex120To64(Board.GetEnPassantSquare());
+        int enPasSq = Board.ConvertIndex120To64(move.TargetSquare);
         enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 8 : -8;
-
+        
         GameObject go = BoardGeneration.instance.squaresGO[enPasSq].transform.GetChild(0).gameObject;
         go.GetComponent<Image>().sprite = null;
         go.GetComponent<Image>().color = new Color32(255, 255, 255, 0);

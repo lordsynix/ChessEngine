@@ -5,78 +5,52 @@ using static MoveGenerator;
 
 public class Position
 {
-    public bool GameOver = false;
-
-    // Position Variables
-    public bool WhiteToMove;
-    public int EnPassantSquare;
-
-    public bool WhiteCastleKingside;
-    public bool WhiteCastleQueenside;
-    public bool BlackCastleKingside;
-    public bool BlackCastleQueenside;
-
     // Position Informations
+    public bool GameOver = false;
+    public int Evaluation = -1;
+
     public Move bestMove;
 
     public List<Position> ChildPositions;
 
     public List<Move> PossibleMoves;
-    public List<int[]> PiecesList { get; set; }
 
-    public Position(List<int[]> piecesList, bool whiteToMove, int enPassantSquare)
+    public Position(List<Move> possibleMoves, int depth)
     {
-        PiecesList = piecesList;
+        PossibleMoves = possibleMoves;
+        ChildPositions = GetChildPositions(depth);
 
-        WhiteToMove = whiteToMove;
-        EnPassantSquare = enPassantSquare;
-
-        bool[] permissions = Board.GetCastlePermissions();
-
-        WhiteCastleKingside = permissions[0];
-        WhiteCastleQueenside = permissions[1];
-        BlackCastleKingside = permissions[2];
-        BlackCastleQueenside = permissions[3];
-
-        PossibleMoves = GetPossibleMoves();
-        GameOver = IsOver();
+        Evaluation = Engine.Evaluate();
     }
 
     public List<Move> GetPossibleMoves()
     {
         if (PossibleMoves == null)
         {
-            var moves = GenerateMoves();
-            GameOver = moves.Count == 0;
-
-            return moves;
+            Debug.LogError("PossibleMoves aren't generated yet");
         }
-        
         return PossibleMoves;
     }
 
-    public List<Position> GetChildPositions()
+    public List<Position> GetChildPositions(int depth)
     {
-        if (ChildPositions != null) return ChildPositions;
+        if (depth == 0)
+        {
+            return null;
+        }
 
         ChildPositions = new();
 
-        foreach (Move move in GetPossibleMoves())
+        foreach (Move move in PossibleMoves)
         {
-            Board.MakeMove(move, true, this);
+            Board.MakeMove(move, true);
 
-            var piecesList = Board.GetPieceLocation();
-            Position childPosition = new(piecesList, Board.GetWhiteToMove(), move.EnPassant);
+            Position childPosition = new(GenerateMoves(), depth - 1);
             ChildPositions.Add(childPosition);
 
-            Board.UnmakeMove(move, this);
+            Board.UnmakeMove(move);
         }
 
         return ChildPositions;
-    }
-
-    private bool IsOver()
-    {
-        return false;
     }
 }

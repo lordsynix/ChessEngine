@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     public Text sideToMove;
     public Text movesCounter;
     public Text responsesCounter;
+    public RectTransform evaluationBar;
 
     [Header("Debug Tools")]
     public GameObject squareInformationPrefab;
@@ -75,12 +76,12 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
-
-        //Board.SetGameMode(Board.Mode.Testing);
     }
 
     private void Start()
     {
+        Board.SetGameMode(Board.Mode.Testing);
+
         Board.Initialize();
         square120 = Board.GetSquare120();
 
@@ -88,6 +89,9 @@ public class GameManager : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "ChessBoard") LoadFenPosition(startFEN);
         else if (SceneManager.GetActiveScene().name == "Puzzles") LoadFenPosition(GetPuzzleFen());
+
+        // Richtet die Evaluation Bar fuer die richtige Seite vor.
+        evaluationBar.localPosition = Board.GetPlayerColor() == Piece.WHITE ? new(0, -150f): new(0f, 150f);
     }
 
     private void Update()
@@ -139,10 +143,18 @@ public class GameManager : MonoBehaviour
 
     #region FEN
 
+    /// <summary>
+    /// Die Funktion <c>LoadFenPosition</c> generiert mit einem FEN-String eine 
+    /// beliebige Schachposition unter Beruecksichtigung aller bestehender Regeln.
+    /// </summary>
+    /// <param name="fen">Der zu generierende FEN-String.</param>
     public void LoadFenPosition(string fen)
     {
+        LogManager.Instance.LogMessage($"Loading FEN-String: {fen}");
+
         try
         {
+            // vgl. mit https://www.youtube.com/watch?v=U4ogK0MIzqk&t=160s 2:40s
             string fenBoard = fen.Split(' ')[0];
             string fenToMove = fen.Split(' ')[1];
             string fenCastle = fen.Split(' ')[2];
@@ -185,6 +197,7 @@ public class GameManager : MonoBehaviour
         }
         catch (Exception ex)
         {
+            LogManager.Instance.LogMessage($"Exception while loading FEN-String: {ex}");
             Debug.LogException(ex);
             fenInputField.text = "Invalid position";
             Error.instance.OnError();
@@ -194,6 +207,10 @@ public class GameManager : MonoBehaviour
         SetPossibleMoves();
     }
 
+    /// <summary>
+    /// Die Funktion <c>StoreFenPosition</c> speichert eine beliebige Schachposition in 
+    /// einem FEN-String unter Beruecksichtigung aller Schachregeln.
+    /// </summary>
     public void StoreFenPosition()
     {
         square64 = Board.GetSquare64();
@@ -248,6 +265,8 @@ public class GameManager : MonoBehaviour
         if (castlePermissions[1]) position += 'Q';
         if (castlePermissions[2]) position += 'k';
         if (castlePermissions[3]) position += 'q';
+
+        LogManager.Instance.LogMessage($"Stored position in FEN-String: {position}");
     }
 
     #endregion
@@ -513,10 +532,12 @@ public class GameManager : MonoBehaviour
         else historyWindow.SetActive(true);
     }
 
-    public void SetPositionStats(int moves, int responses)
+    public void SetPositionStats(int moves, int responses, int evaluation)
     {
         movesCounter.text = "Possible Moves: " + moves.ToString();
         responsesCounter.text = "Possible Responses: " + responses.ToString();
+
+        SetEvaluationBar(evaluation);
     }
 
     public void UpdateGameTree(Position pos)
@@ -529,20 +550,32 @@ public class GameManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
+        
         foreach(Position childPos in pos.ChildPositions)
         {
             int index = pos.ChildPositions.IndexOf(childPos);
 
             var moveGO = Instantiate(movePrefab, gameTreeRoot.transform);
-            moveGO.name = Board.DesignateMove(pos.PossibleMoves[index]) + " - " + Engine.positionEvaluation[index];
+            moveGO.name = Board.DesignateMove(pos.PossibleMoves[index]) + " : " + childPos.Evaluation;
 
-            foreach (Move responseMove in childPos.PossibleMoves)
+            /*foreach (Position responsePos in childPos.ChildPositions)
             {
+                int _index = responsePos.ChildPositions.IndexOf(responsePos);
+
                 var childMoveGO = Instantiate(movePrefab, moveGO.transform);
-                childMoveGO.name = Board.DesignateMove(responseMove) + " - ";
-            }
+                childMoveGO.name = Board.DesignateMove(responsePos.PossibleMoves[_index]) + " : " + responsePos.Evaluation;
+            }*/
         }
+    }
+
+    private void SetEvaluationBar(int evaluation)
+    {
+        float side = Board.GetPlayerColor() == Piece.WHITE ? 1f : -1f;
+        float value = -side * 150f + (side * evaluation / 82f * 18.75f);
+        float min = side == 1f ? -300 : 0f;
+        float max = side == 1f ? 0 : 300;
+        float posY = Mathf.Clamp(value, min, max);
+        evaluationBar.localPosition = new(0, posY);
     }
 
     #endregion
