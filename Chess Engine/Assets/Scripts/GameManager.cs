@@ -80,7 +80,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Board.SetGameMode(Board.Mode.Testing);
+        //Board.SetGameMode(Board.Mode.Testing);
 
         Board.Initialize();
         square120 = Board.GetSquare120();

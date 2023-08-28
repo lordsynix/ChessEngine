@@ -9,7 +9,7 @@ using static PieceSquareTables;
 public static class Engine
 {
     [HideInInspector] public static string positionFEN = "";
-    public const int searchDepth = 2;
+    public const int searchDepth = 1;
 
     public static Position currentPosition;
 

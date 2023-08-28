@@ -11,10 +11,7 @@ public class LogManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-    }
 
-    private void Start()
-    {
         // Erstellt einen Pfad für die Log-Datei.
         logFilePath = Application.dataPath + "/Logs/log.txt";
 
@@ -23,7 +20,10 @@ public class LogManager : MonoBehaviour
         {
             File.Delete(logFilePath);
         }
+    }
 
+    private void Start()
+    {
         // Schreibt eine Startmeldung in die Log-Datei.
         WriteToLog("Loaded chess board scene");
     }
