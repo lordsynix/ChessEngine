@@ -18,9 +18,9 @@ public class GameManager : MonoBehaviour
     public GameObject gameTreeRoot;
     public GameObject movePrefab;
 
-    private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
-    // private const string testFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
-    // private const string testFEN2 = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w -";
+    //private const string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq"; // Ausgangsposition als FEN-String
+    //private const string startFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk";
+    private const string startFEN = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w -";
 
     private List<int> usedPuzzlesId = new();
 
@@ -82,6 +82,7 @@ public class GameManager : MonoBehaviour
     {
         //Board.SetGameMode(Board.Mode.Testing);
 
+        Log.Initialize();
         Board.Initialize();
         square120 = Board.GetSquare120();
 
@@ -126,16 +127,8 @@ public class GameManager : MonoBehaviour
         {
             if (Board.GetPlayerColor() != (Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK) && !currentPosition.GameOver)
             {
-                StartCoroutine(MakeEngineMove(currentPosition.bestMove));
+                StartCoroutine(MakeEngineMove(currentPosition.BestMove));
             }
-            else
-            {
-                if (DebugMode) UpdateGameTree(currentPosition);
-            }
-        }
-        else
-        {
-            if (DebugMode) UpdateGameTree(currentPosition);
         }
     }
 
@@ -150,7 +143,7 @@ public class GameManager : MonoBehaviour
     /// <param name="fen">Der zu generierende FEN-String.</param>
     public void LoadFenPosition(string fen)
     {
-        LogManager.Instance.LogMessage($"Loading FEN-String: {fen}");
+        Log.Message($"Loading FEN-String: {fen}");
 
         try
         {
@@ -186,6 +179,7 @@ public class GameManager : MonoBehaviour
             }
             Board.SetSquare64(square64);
             BoardGeneration.instance.GeneratePieces(square64);
+            TranspositionTable.Initialize();
 
             // Definiert den Spieler, welcher als nächstes Spielen darf.
             if (fenToMove == "w") Board.SetWhiteToMove(true);
@@ -197,7 +191,7 @@ public class GameManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            LogManager.Instance.LogMessage($"Exception while loading FEN-String: {ex}");
+            Log.Message($"Exception while loading FEN-String: {ex}");
             Debug.LogException(ex);
             fenInputField.text = "Invalid position";
             Error.instance.OnError();
@@ -211,7 +205,7 @@ public class GameManager : MonoBehaviour
     /// Die Funktion <c>StoreFenPosition</c> speichert eine beliebige Schachposition in 
     /// einem FEN-String unter Beruecksichtigung aller Schachregeln.
     /// </summary>
-    public void StoreFenPosition()
+    public string StoreFenPosition()
     {
         square64 = Board.GetSquare64();
 
@@ -266,7 +260,7 @@ public class GameManager : MonoBehaviour
         if (castlePermissions[2]) position += 'k';
         if (castlePermissions[3]) position += 'q';
 
-        LogManager.Instance.LogMessage($"Stored position in FEN-String: {position}");
+        return position;
     }
 
     #endregion
@@ -504,7 +498,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Öffnet ein Menü, im dem die Figur ausgewählt werden kann, 
+    /// Oeffnet ein Menü, im dem die Figur ausgewaehlt werden kann, 
     /// in die sich der Bauer in der letzten Reihe verwandelt.
     /// </summary>
     /// <param name="move">Den Zug, bei dem sich der Bauer verwandelt.</param>
@@ -538,34 +532,6 @@ public class GameManager : MonoBehaviour
         responsesCounter.text = "Possible Responses: " + responses.ToString();
 
         SetEvaluationBar(evaluation);
-    }
-
-    public void UpdateGameTree(Position pos)
-    {
-        if (pos.PossibleMoves.Count != pos.ChildPositions.Count)
-            Debug.LogError("Possible Positions can't differ from Possible Moves");
-
-        // Loescht alte Informationen.
-        foreach (Transform child in gameTreeRoot.transform)
-        {
-            Destroy(child.gameObject);
-        }
-        
-        foreach(Position childPos in pos.ChildPositions)
-        {
-            int index = pos.ChildPositions.IndexOf(childPos);
-
-            var moveGO = Instantiate(movePrefab, gameTreeRoot.transform);
-            moveGO.name = Board.DesignateMove(pos.PossibleMoves[index]) + " : " + childPos.Evaluation;
-
-            /*foreach (Position responsePos in childPos.ChildPositions)
-            {
-                int _index = responsePos.ChildPositions.IndexOf(responsePos);
-
-                var childMoveGO = Instantiate(movePrefab, moveGO.transform);
-                childMoveGO.name = Board.DesignateMove(responsePos.PossibleMoves[_index]) + " : " + responsePos.Evaluation;
-            }*/
-        }
     }
 
     private void SetEvaluationBar(int evaluation)

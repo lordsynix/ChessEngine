@@ -74,6 +74,57 @@ public static class Piece
         }
     }
 
+    public static int IsPieceType(int piece)
+    {
+        switch (piece)
+        {
+            case WHITE | NONE:
+                return -1;
+
+            case WHITE | KING:
+                return 0;
+
+            case WHITE | PAWN:
+                return 1;
+
+            case WHITE | KNIGHT:
+                return 2;
+
+            case WHITE | BISHOP:
+                return 3;
+
+            case WHITE | ROOK:
+                return 4;
+
+            case WHITE | QUEEN:
+                return 5;
+
+            case BLACK | NONE:
+                return -1;
+
+            case BLACK | KING:
+                return 6;
+
+            case BLACK | PAWN:
+                return 7;
+
+            case BLACK | KNIGHT:
+                return 8;
+
+            case BLACK | BISHOP:
+                return 9;
+
+            case BLACK | ROOK:
+                return 10;
+
+            case BLACK | QUEEN:
+                return 11;
+
+            default:
+                return -1;
+        }
+    }
+
     /// <summary>
     /// Die Funktion <c>IsColor</c> ueberprueft, ob eine uebergebene
     /// Figur einer ausgewaehlten Figurenfarbe angehoert.

@@ -9,18 +9,27 @@ public class Position
     public bool GameOver = false;
     public int Evaluation = -1;
 
-    public Move bestMove;
+    public Move BestMove;
 
-    public List<Position> ChildPositions;
+    private List<Move> PossibleMoves;
+    private List<Position> ChildPositions;
 
-    public List<Move> PossibleMoves;
-
-    public Position(List<Move> possibleMoves, int depth)
+    public Position(bool store = true, bool generateChilds = false)
     {
-        PossibleMoves = possibleMoves;
-        ChildPositions = GetChildPositions(depth);
+        PossibleMoves = GenerateMoves();
+        GameOver = PossibleMoves.Count == 0;
 
         Evaluation = Engine.Evaluate();
+
+        if (generateChilds)
+        {
+            GetChildPositions();
+        }
+        else
+        {
+            // Add position to the transposition table
+            if (store) TranspositionTable.Store(new(Evaluation));
+        }
     }
 
     public List<Move> GetPossibleMoves()
@@ -32,25 +41,30 @@ public class Position
         return PossibleMoves;
     }
 
-    public List<Position> GetChildPositions(int depth)
+    public List<Position> GetChildPositions()
     {
-        if (depth == 0)
+        if (ChildPositions == null)
         {
-            return null;
-        }
+            ChildPositions = new();
 
-        ChildPositions = new();
+            foreach (Move move in PossibleMoves)
+            {
+                Board.MakeMove(move, true);
 
-        foreach (Move move in PossibleMoves)
-        {
-            Board.MakeMove(move, true);
+                Position childPosition = new(false);
+                ChildPositions.Add(childPosition);
 
-            Position childPosition = new(GenerateMoves(), depth - 1);
-            ChildPositions.Add(childPosition);
-
-            Board.UnmakeMove(move);
+                Board.UnmakeMove(move);
+            }
         }
 
         return ChildPositions;
+    }
+
+    public void RemoveInvalidItems(List<Move> illegalMoves, List<Position> illegalPositions)
+    {
+        // Filtert die illegalen Zuege aus den Moeglichen heraus.
+        PossibleMoves.RemoveAll(move => illegalMoves.Contains(move));
+        ChildPositions.RemoveAll(pos => illegalPositions.Contains(pos));
     }
 }

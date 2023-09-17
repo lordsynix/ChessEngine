@@ -95,8 +95,8 @@ public class BoardGeneration : MonoBehaviour
             }
             go.GetComponent<Image>().sprite = pieces[squares[i]];
         }
-        LogManager.Instance.LogMessage($"Successfully generated pieces");
-        LogManager.Instance.LogMessage($"--------------------------------");
+        Log.Message($"Successfully generated pieces");
+        Log.Message($"--------------------------------");
     }
 
     /// <summary>

@@ -88,7 +88,7 @@ public static class Board
     {
         GameMode = mode;
 
-        LogManager.Instance.LogMessage($"Enter GameMode: {mode}");
+        Log.Message($"Enter GameMode: {mode}");
     }
 
     /// <summary>
@@ -503,8 +503,8 @@ public static class Board
         // Generiert die naechsten Zuege
         if (!calculation)
         {
-            GameManager.instance.SetPossibleMoves();
             LastCaptures.RemoveAt(0);
+            GameManager.instance.SetPossibleMoves();
         }
     }
 

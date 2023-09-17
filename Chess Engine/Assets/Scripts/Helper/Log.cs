@@ -2,16 +2,12 @@ using UnityEngine;
 using System.IO;
 using System;
 
-public class LogManager : MonoBehaviour
+public static class Log
 {
-    public static LogManager Instance;
+    private static string logFilePath;
 
-    private string logFilePath;
-
-    private void Awake()
+    public static void Initialize()
     {
-        Instance = this;
-
         // Erstellt einen Pfad für die Log-Datei.
         logFilePath = Application.dataPath + "/Logs/log.txt";
 
@@ -20,15 +16,12 @@ public class LogManager : MonoBehaviour
         {
             File.Delete(logFilePath);
         }
-    }
 
-    private void Start()
-    {
         // Schreibt eine Startmeldung in die Log-Datei.
         WriteToLog("Loaded chess board scene");
     }
 
-    private void WriteToLog(string message)
+    private static void WriteToLog(string message)
     {
         if (string.IsNullOrEmpty(logFilePath))
         {
@@ -49,7 +42,7 @@ public class LogManager : MonoBehaviour
         }
     }
 
-    public void LogMessage(string message)
+    public static void Message(string message)
     {
         WriteToLog(message);
     }

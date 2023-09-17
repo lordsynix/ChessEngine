@@ -79,8 +79,6 @@ public static class MoveGenerator
 
     public static List<Move> GenerateMoves()
     {
-        float startTime = Time.realtimeSinceStartup;
-
         square120 = Board.GetSquare120();
         piecesList = Board.GetPieceLocation();
         List<Move> moves = new();
@@ -99,8 +97,6 @@ public static class MoveGenerator
                 moves.AddRange(GenerateMovesForPiece(startSquare, pieceType));
             }
         }
-
-        //Debug.Log($"{moves.Count} moves generated in {(Time.realtimeSinceStartup - startTime) * 1000} ms");
 
         return moves;
     }
