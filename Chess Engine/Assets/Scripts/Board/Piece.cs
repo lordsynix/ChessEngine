@@ -9,7 +9,7 @@ using UnityEngine;
 /// </summary>
 public static class Piece
 {
-    
+
     public const int NONE = 0;
     public const int KING = 1;
     public const int PAWN = 2;
@@ -79,49 +79,49 @@ public static class Piece
         switch (piece)
         {
             case WHITE | NONE:
-                return -1;
+                return NONE;
 
             case WHITE | KING:
-                return 0;
+                return KING;
 
             case WHITE | PAWN:
-                return 1;
+                return PAWN;
 
             case WHITE | KNIGHT:
-                return 2;
+                return KNIGHT;
 
             case WHITE | BISHOP:
-                return 3;
+                return BISHOP;
 
             case WHITE | ROOK:
-                return 4;
+                return ROOK;
 
             case WHITE | QUEEN:
-                return 5;
+                return QUEEN;
 
             case BLACK | NONE:
-                return -1;
+                return NONE;
 
             case BLACK | KING:
-                return 6;
+                return KING;
 
             case BLACK | PAWN:
-                return 7;
+                return PAWN;
 
             case BLACK | KNIGHT:
-                return 8;
+                return KNIGHT;
 
             case BLACK | BISHOP:
-                return 9;
+                return BISHOP;
 
             case BLACK | ROOK:
-                return 10;
+                return ROOK;
 
             case BLACK | QUEEN:
-                return 11;
+                return QUEEN;
 
             default:
-                return -1;
+                return NONE;
         }
     }
 
@@ -252,37 +252,5 @@ public static class Piece
             _ => ' ',
         };
     }
-
-    public static List<int[]> GeneratePiecesList()
-    {
-        List<int[]> piecesList = new()
-        {
-            new int[0],  // 0  - UNDEFINED
-            new int[0],  // 1  - UNDEFINED
-            new int[0],  // 2  - UNDEFINED
-            new int[0],  // 3  - UNDEFINED
-            new int[0],  // 4  - UNDEFINED
-            new int[0],  // 5  - UNDEFINED
-            new int[0],  // 6  - UNDEFINED
-            new int[0],  // 7  - UNDEFINED
-            new int[0],  // 8  - NONE
-            new int[1],  // 9  - WHITE KING
-            new int[8],  // 10 - WHITE PAWN
-            new int[10], // 11 - WHITE KNIGHT
-            new int[10], // 12 - WHITE BISHOP
-            new int[10], // 13 - WHITE ROOK
-            new int[9],  // 14 - WHITE QUEEN
-            new int[0],  // 15 - UNDEFINED
-            new int[0],  // 16 - NONE
-            new int[1],  // 17 - BLACK KING
-            new int[8],  // 18 - BLACK PAWN
-            new int[10], // 19 - BLACK KNIGHT
-            new int[10], // 20 - BLACK BISHOP
-            new int[10], // 21 - BLACK ROOK
-            new int[9]   // 22 - BLACK QUEEN
-        };
-
-        return piecesList;
-    }
-
 }
+

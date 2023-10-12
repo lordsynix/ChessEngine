@@ -19,7 +19,10 @@ public class MainMenu : MonoBehaviour
         username = ArgumentsParser.instance.GetArg("-username");
 
         // Uebernimmt den Benutzername, falls das Spiel mit dem Launcher gestartet wurde.
-        if (!string.IsNullOrEmpty(username)) PlayerPrefs.SetString("username", username);
+        if (!string.IsNullOrEmpty(username))
+        {
+            PlayerPrefs.SetString("username", username);
+        }
 
         Username();
     }
