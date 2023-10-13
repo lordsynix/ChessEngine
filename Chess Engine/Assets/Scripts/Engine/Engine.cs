@@ -3,7 +3,7 @@ using static PieceSquareTables;
 using System.Linq;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
-using System.Xml.Schema;
+using Unity.VisualScripting;
 
 public static class Engine
 {
@@ -68,13 +68,15 @@ public static class Engine
 
         stopwatch.Stop();
 
+        string searchPath = "";
         foreach (Move move in result.SearchPath)
         {
-            if (move != null) Debug.Log(Board.DesignateMove(move));
+            if (move != null) searchPath += Board.DesignateMove(move) + ": ";
         }
 
         //Log.Message($"Bestmove: {Board.DesignateMove(searchPath[0])}");
         Debug.Log($"Depth {searchDepth}: Positions evaluated: {positionsEvaluated}: Time: {stopwatch.ElapsedMilliseconds} ms");
+        Debug.Log(searchPath);
         Debug.Log("--------------------------------");
 
         if (Board.GetPlayerColor() == Piece.WHITE != Board.GetWhiteToMove())
@@ -116,7 +118,7 @@ public static class Engine
         }
         possibleMoves.RemoveAll(move => illegalMoves.Contains(move));
         
-        return possibleMoves;
+        return OrderMoves(possibleMoves);
     }
 
     private static int GetKingSquare(int prevKingSq)
@@ -142,6 +144,37 @@ public static class Engine
 
         Debug.LogWarning("King bitboard doesn't contain a position for the king");
         return -1;
+    }
+
+    private static List<Move> OrderMoves(List<Move> moves)
+    {
+        List<Move> orderedMoves = new();
+
+        foreach (Move move in moves)
+        {
+            if (move.MoveFlag == Move.CastleFlag || move.MoveFlag == Move.PromoteToQueenFlag)
+            {
+                orderedMoves.Add(move);
+            }
+        }
+        moves = moves.Except(orderedMoves).ToList();
+
+        foreach (Move move in moves)
+        {
+            if (Board.PieceOnSquare(Board.ConvertIndex64To120(move.TargetSquare)) != Piece.NONE)
+            {
+                orderedMoves.Add(move);
+            }
+            if (move.MoveFlag == Move.EnPassantCaptureFlag)
+            {
+                orderedMoves.Add(move);
+            }
+        }
+        moves = moves.Except(orderedMoves).ToList();
+
+        orderedMoves.AddRange(moves);
+
+        return orderedMoves;
     }
 
     public static SearchResult AlphaBeta(List<Move> possibleMoves, int depth, int alpha, int beta, bool isWhite, Move parentMove = null)

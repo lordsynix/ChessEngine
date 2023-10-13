@@ -64,7 +64,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         {
             if (engineMove)
             {
-                Debug.LogWarning("Engine move doesn't exists");
+                Debug.LogWarning("Engine move doesn't exist");
                 GameManager.Instance.MakeEngineMove(possibleMoves[Random.Range(0, possibleMoves.Count)]);
             }
             return;
