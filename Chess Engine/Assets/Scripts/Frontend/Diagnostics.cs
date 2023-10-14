@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +10,7 @@ public class Diagnostics : MonoBehaviour
     public static Diagnostics Instance;
 
     [Header("Transposition Table")]
-    public Text usagePercentage;
+    public Text usagePercentageText;
     public Text entryCount;
 
     private void Awake()
@@ -19,10 +20,12 @@ public class Diagnostics : MonoBehaviour
 
     #region Visuals
 
-    public void UpdateTranspositionTableVisuals(double _usagePercentage, int _entryCount)
+    public void UpdateTranspositionTableVisuals()
     {
-        usagePercentage.text = $"{_usagePercentage}% used";
-        entryCount.text = $"{_entryCount} entries";
+        long usedMemory = TranspositionTable.SizeOfEntry * TranspositionTable.EntryCount;
+
+        usagePercentageText.text = $"{Math.Round((double)usedMemory / TranspositionTable.AvailableMemory, 3)}% used";
+        entryCount.text = $"{TranspositionTable.EntryCount} entries";
     }
 
     public void UpdateDebugInformation(bool debugMode = true)

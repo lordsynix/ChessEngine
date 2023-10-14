@@ -9,7 +9,7 @@ public static class Log
     public static void Initialize()
     {
         // Erstellt einen Pfad für die Log-Datei.
-        logFilePath = Application.dataPath + "/Logs/log.txt";
+        logFilePath = Path.Combine(Application.dataPath, "Logs/log.txt");
 
         // Loescht die vorherige Log-Datei, falls vorhanden.
         if (File.Exists(logFilePath))
@@ -23,7 +23,8 @@ public static class Log
 
     private static void WriteToLog(string message)
     {
-        if (string.IsNullOrEmpty(logFilePath))
+        return;
+        /*if (string.IsNullOrEmpty(logFilePath))
         {
             Debug.LogWarning("Log file path is null or empty. " + logFilePath);
             return;
@@ -39,7 +40,7 @@ public static class Log
         catch (Exception e)
         {
             Debug.LogError($"Error writing to log file: {e.Message}");
-        }
+        }*/
     }
 
     public static void Message(string message)

@@ -70,7 +70,7 @@ public static class EngineManager
     {
         // Search
         Log.Message("------------------------------------------------");
-        Engine.Search();
+        Engine.StartSearch();
 
         searchCompleted = true;
         EngineReady();

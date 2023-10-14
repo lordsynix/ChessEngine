@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public static class Board 
@@ -180,7 +177,7 @@ public static class Board
                 RepetitionPositionHistroy.Push(newState.zobristKey);
 
                 Diagnostics.Instance.UpdateDebugInformation(GameManager.Instance.DebugMode);
-                Engine.Search();
+                Engine.StartSearch();
             }
         }
         catch (Exception ex)

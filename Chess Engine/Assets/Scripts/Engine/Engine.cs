@@ -3,7 +3,6 @@ using static PieceSquareTables;
 using System.Linq;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
-using Unity.VisualScripting;
 
 public static class Engine
 {
@@ -36,15 +35,20 @@ public static class Engine
     const int queenValue = 900;
     const int kingValue = 12000;
 
-    public static void Search()
+    public static void StartSearch()
     {
         Log.Message($"Started search with depth {searchDepth}...");
 
         stopwatch.Start();
 
+        Search();
+    }
+
+    private static void Search()
+    {
         // Generiert und validiert alle moeglichen Zuege
         List<Move> possibleMoves = GetPossibleMoves();
-        
+
         // Eine Seite hat keine moeglichen Zuege mehr
         if (possibleMoves.Count == 0)
         {
@@ -55,13 +59,26 @@ public static class Engine
 
         GameManager.Instance.PossibleMoves = possibleMoves;
 
-        // Initialisiert die Suche des bestmoeglichen Zuges.
+        // Initialisiert die Suche des bestmoeglichen Zuges
         positionsEvaluated = 0;
 
         // Startet die Alpha-Beta Suche, um einen Vorteil bei bester Antwort des Gegenspielenden zu finden
         SearchResult result = AlphaBeta(possibleMoves, searchDepth, int.MinValue, int.MaxValue, Board.GetWhiteToMove());
 
-        // Aktualisiert den Wert des UI-Elements neben dem Spielbrett (Evaluation Bar)
+        // Formattiert den Suchpfad um
+        result.SearchPath.Reverse();
+
+        // Speichert die Resultate
+        //FinishedSearch = true;
+        //searchResult = result;
+
+        //searchThread.Abort();
+        StopSearch(result);
+    }
+
+    public static void StopSearch(SearchResult result)
+    {
+        // Aktualisiert den Wert des UI-Bewertungselement neben dem Spielbrett (Evaluation Bar)
         GameManager.Instance.SetEvaluationBar(result.Evaluation);
 
         Debug.Log("Alpha-Beta search: " + result.Evaluation);
@@ -83,6 +100,8 @@ public static class Engine
         {
             GameManager.Instance.MakeEngineMove(result.SearchPath[0]);
         }
+
+        Diagnostics.Instance.UpdateTranspositionTableVisuals();
     }
 
     public static List<Move> GetPossibleMoves()
@@ -177,23 +196,31 @@ public static class Engine
         return orderedMoves;
     }
 
-    public static SearchResult AlphaBeta(List<Move> possibleMoves, int depth, int alpha, int beta, bool isWhite, Move parentMove = null)
+    public static SearchResult AlphaBeta(List<Move> possibleMoves, int depth, int alpha, int beta, bool isWhite, Stack<Move> moveStack = null)
     {
+        // Erstellt einen neuen Zugstapel, wenn dieser null ist
+        moveStack ??= new Stack<Move>();
+
         if (depth == 0 || possibleMoves.Count == 0)
         {
-            var searchPath = new List<Move>() { parentMove };
-            return new SearchResult(Evaluate(depth), searchPath);
+            return new SearchResult(Evaluate(depth), new List<Move>(moveStack));
         }
+
+        SearchResult bestResult = new();
 
         if (isWhite)
         {
             int maxEvaluation = int.MinValue;
-            SearchResult bestResult = new();
+
             foreach (Move move in possibleMoves)
             {
                 Board.MakeMove(move, true);
-                SearchResult result = AlphaBeta(MoveGenerator.GenerateMoves(), depth - 1, alpha, beta, false, move);
+                moveStack.Push(move);
+
+                SearchResult result = AlphaBeta(MoveGenerator.GenerateMoves(), depth - 1, alpha, beta, false, moveStack);
+
                 Board.UnmakeMove(move, true);
+                moveStack.Pop();
 
                 if (result.Evaluation > maxEvaluation)
                 {
@@ -204,18 +231,22 @@ public static class Engine
                 if (alpha > result.Evaluation) alpha = result.Evaluation;
                 if (beta <= alpha) break;
             }
-            bestResult.SearchPath.Add(parentMove);
-            return new(maxEvaluation, bestResult.SearchPath);
+
+            return new SearchResult(maxEvaluation, new List<Move>(bestResult.SearchPath));
         }
         else
         {
             int minEvaluation = int.MaxValue;
-            SearchResult bestResult = new();
+
             foreach (Move move in possibleMoves)
             {
                 Board.MakeMove(move, true);
-                SearchResult result = AlphaBeta(MoveGenerator.GenerateMoves(), depth - 1, alpha, beta, true, move);
+                moveStack.Push(move);
+
+                SearchResult result = AlphaBeta(MoveGenerator.GenerateMoves(), depth - 1, alpha, beta, true, moveStack);
+
                 Board.UnmakeMove(move, true);
+                moveStack.Pop();
 
                 if (result.Evaluation < minEvaluation)
                 {
@@ -226,8 +257,8 @@ public static class Engine
                 if (beta < result.Evaluation) beta = result.Evaluation;
                 if (beta <= alpha) break;
             }
-            bestResult.SearchPath.Add(parentMove);
-            return new(minEvaluation, bestResult.SearchPath);
+
+            return new SearchResult(minEvaluation, new List<Move>(bestResult.SearchPath));
         }
     }
 
@@ -318,7 +349,7 @@ public static class Engine
 
     public static void Initialize()
     {
-        int tableSize = 1024 * 1024 * tableSizeMB;
+        int tableSize = 1024 * 1024 * tableSizeMB; 
 
         transpositionTable = new TranspositionTable(tableSize);
         stopwatch = new Stopwatch();

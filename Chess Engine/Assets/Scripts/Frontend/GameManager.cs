@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
     {
         EngineManager.InitializeUCI();
         FENManager.LoadFenPosition();
-        Engine.Search();
+        Engine.StartSearch();
 
         // Richtet die Evaluation Bar fuer die richtige Seite aus
         evaluationBar.localPosition = Board.GetPlayerColor() == Piece.WHITE ? new(0, -150f) : new(0f, 150f);
