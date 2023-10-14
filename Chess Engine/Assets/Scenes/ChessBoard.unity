@@ -780,7 +780,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 728195a495e60e6418b1c556b6fd08c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  usagePercentage: {fileID: 307950334}
+  usagePercentageText: {fileID: 958983384}
   entryCount: {fileID: 858994773}
 --- !u!1 &6561025329533693813
 GameObject:
@@ -4276,7 +4276,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1876016193}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: MainMenu
         m_Mode: 1

@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 using Debug = UnityEngine.Debug;
@@ -41,6 +43,14 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public List<GameObject> VisualizedMoves = new();
 
     private Move curMove;
+    private GameObject lastBlackMoveFromGO;
+    private GameObject lastBlackMoveToGO;
+    private GameObject lastWhiteMoveFromGO;
+    private GameObject lastWhiteMoveToGO;
+
+    private Color32 possibleMoveColor = new Color32(64, 100, 120, 255);
+    private Color32 lastBlackMoveColor = new Color32(111, 36, 57, 255);
+    private Color32 lastWhiteMoveColor = new Color32(56, 150, 53, 255);
 
     private void Awake()
     {
@@ -105,8 +115,13 @@ public class GameManager : MonoBehaviour
             int targetSquare = move.TargetSquare;
             GameObject targetSquareGO = BoardGeneration.instance.squaresGO[targetSquare];
 
-            VisualizedMoves.Add(targetSquareGO);
-            targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
+            // Verhindert, dass eine existierende Visualisierung ueberschrieben wird
+            if (!targetSquareGO.transform.GetChild(2).gameObject.activeSelf)
+            {
+                VisualizedMoves.Add(targetSquareGO);
+                targetSquareGO.transform.GetChild(2).gameObject.SetActive(true);
+                targetSquareGO.transform.GetChild(2).GetComponent<Image>().color = possibleMoveColor;
+            }
         }
     }
 
@@ -136,6 +151,51 @@ public class GameManager : MonoBehaviour
         piece.sprite = BoardGeneration.instance.pieces[Board.PieceOnSquare(Board.ConvertIndex64To120(move.TargetSquare))];
 
         if (moveCount > 7) (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 0);
+
+        // Aktualisiert die Visualisierung des letzten Zuges
+        UpdateLastMoveVisualization(move);
+    }
+
+    private void UpdateLastMoveVisualization(Move move)
+    {
+        if (Board.GetWhiteToMove())
+        {
+            // Deaktiviert die letzten Zug-Visualisierungen
+            if (lastWhiteMoveFromGO != null) lastWhiteMoveFromGO.SetActive(false);
+            if (lastBlackMoveFromGO != null) lastBlackMoveFromGO.SetActive(false);
+            if (lastBlackMoveToGO != null) lastBlackMoveToGO.SetActive(false);
+
+            // Weist die neuen Felder zu
+            lastBlackMoveFromGO = BoardGeneration.instance.squaresGO[move.StartSquare].transform.GetChild(2).gameObject;
+            lastBlackMoveToGO = BoardGeneration.instance.squaresGO[move.TargetSquare].transform.GetChild(2).gameObject;
+
+            // Visualisiert das Ursprungsfeld des Zuges
+            lastBlackMoveFromGO.GetComponent<Image>().color = lastBlackMoveColor;
+            lastBlackMoveFromGO.SetActive(true);
+
+            // Aktualisiert das Zielfeld des Zuges
+            lastBlackMoveToGO.GetComponent<Image>().color = lastBlackMoveColor;
+            lastBlackMoveToGO.SetActive(true);
+        }
+        else
+        {
+            // Deaktiviert die letzten Zug-Visualisierungen
+            if (lastBlackMoveFromGO != null) lastBlackMoveFromGO.SetActive(false);
+            if (lastWhiteMoveFromGO != null) lastWhiteMoveFromGO.SetActive(false);
+            if (lastWhiteMoveToGO != null) lastWhiteMoveToGO.SetActive(false);
+
+            // Weist die neuen Felder zu
+            lastWhiteMoveFromGO = BoardGeneration.instance.squaresGO[move.StartSquare].transform.GetChild(2).gameObject;
+            lastWhiteMoveToGO = BoardGeneration.instance.squaresGO[move.TargetSquare].transform.GetChild(2).gameObject;
+
+            // Visualisiert das Ursprungsfeld des Zuges
+            lastWhiteMoveFromGO.GetComponent<Image>().color = lastWhiteMoveColor;
+            lastWhiteMoveFromGO.SetActive(true);
+
+            // Aktualisiert das Zielfeld des Zuges
+            lastWhiteMoveToGO.GetComponent<Image>().color = lastWhiteMoveColor;
+            lastWhiteMoveToGO.SetActive(true);
+        }
     }
 
     public void SetEvaluationBar(int evaluation)
@@ -215,5 +275,10 @@ public class GameManager : MonoBehaviour
         DebugMode = !DebugMode;
 
         Diagnostics.Instance.UpdateDebugInformation(DebugMode);
+    }
+
+    public void MainMenu()
+    {
+        SceneManager.LoadScene(0);
     }
 }
