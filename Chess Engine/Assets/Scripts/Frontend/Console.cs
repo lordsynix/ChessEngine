@@ -4,6 +4,10 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Die Klasse <c>Console</c> diente der Programmierung ohne Benutzeroberflaeche und ermoeglichte die Kommunikation 
+/// ueber das UCI. Die Klasse ist unvollstaendig, hat keinen Einfluss auf die Arbeit und kann vernachlaessigt werden.
+/// </summary>
 public class Console : MonoBehaviour
 {
     public static Console Instance;

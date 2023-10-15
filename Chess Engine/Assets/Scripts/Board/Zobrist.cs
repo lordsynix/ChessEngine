@@ -3,8 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Die Klasse <c>Zobrist</c> ist fuer das nahezu einzigartige und ressourcensparende Hashing fuer eine Brettdarstellung 
+/// verantwortlich. Der Zobrist-Key einer Position kann zu deren Abspeicherung in der Transpositionstabelle verwendet werden.
+/// </summary>
 public static class Zobrist
 {
+    // Uebernommen von: https://github.com/SebLague/Chess-Coding-Adventure/blob/Chess-V2-UCI/Chess-Coding-Adventure/src/Core/Board/Zobrist.cs
+
     public static ulong[,] pieceKeys = new ulong[64, 23];
     public static ulong[] enPassantKeys = new ulong[17];
     public static ulong whiteToMoveKey;
@@ -44,6 +50,13 @@ public static class Zobrist
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateHash</c> generiert fuer eine Ausgangsposition den Zobrist-Schluessel. 
+    /// Ressourcenaufwendig, weshalb sie nur einmalig vom FENManger aufgerufen wird. 
+    /// </summary>
+    /// <param name="_enPassantSquare"></param>
+    /// <param name="_castlingRights"></param>
+    /// <returns></returns>
     public static ulong GenerateHash(int _enPassantSquare, int _castlingRights)
     {
         int[] square64 = Board.GetSquare64();

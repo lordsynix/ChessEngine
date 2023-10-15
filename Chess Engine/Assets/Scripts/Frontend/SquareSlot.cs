@@ -8,7 +8,6 @@ using Unity.VisualScripting;
 
 /// <summary>
 /// Die Klasse <c>SquareSlot</c> stellt ein Feld auf dem Spielbrett dar.
-/// Beinhaltet die grafische Darstellung der Figuren auf dem Feld.
 /// </summary>
 public class SquareSlot : MonoBehaviour, IDropHandler
 {
@@ -19,8 +18,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
     private int targetSquare120;
 
     /// <summary>
-    /// Die Funktion <c>OnDrop</c> wird von Unity beim beenden des "Drag and Drop" aufgerufen.
-    /// Initiiert einen Zug.
+    /// Die Funktion <c>OnDrop</c> wird von Unity beim beenden des "Drag and Drop" aufgerufen und initiiert einen Zug.
     /// </summary>
     /// <param name="eventData">Standartmaessig von Unity uebergeben, 
     /// dient zur Ermittlung des GameObjects der bewegten Figur</param>

@@ -31,12 +31,19 @@ public class BoardGeneration : MonoBehaviour
         instance = this;    
     }
 
+    /// <summary>
+    /// Die Funktion <c>Generate</c> generiert das Spielbrett und die Figuren.
+    /// </summary>
+    /// <param name="squares"></param>
     public void Generate(int[] squares)
     {
         CreateGraphicalBoard();
         GeneratePieces(squares);
     }
 
+    /// <summary>
+    /// Die Funktion <c>CreateGraphicalBoard</c> generiert das Spielbrett.
+    /// </summary>
     private void CreateGraphicalBoard()
     {
         isWhite = Board.GetWhiteToMove();
@@ -56,6 +63,11 @@ public class BoardGeneration : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateSquare</c> generiert ein Feld auf dem Spielbrett.
+    /// </summary>
+    /// <param name="position">Position des Feldes als Vector2</param>
+    /// <param name="isLightSquare">Handelt es sich um ein helles Feld?</param>
     private void GenerateSquare (Vector2 position, bool isLightSquare)
     {
         // Initiiert ein Feld an der angegebenen Position als child des Board-Panel.
@@ -101,7 +113,7 @@ public class BoardGeneration : MonoBehaviour
     }
 
     /// <summary>
-    /// Die Methode <c>ResetBoard</c> setzt die grafische Repraesentierung der Figuren zurueck
+    /// Die Methode <c>ResetBoard</c> setzt die grafische Repraesentierung der Figuren zurueck.
     /// </summary>
     public void ResetBoard()
     {

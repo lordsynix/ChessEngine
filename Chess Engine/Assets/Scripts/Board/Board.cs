@@ -2,15 +2,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Die Klasse <c>Board</c> definiert die interne Brettdarstellung der aktuellen und vorgenerierten Brettstellungen.
+/// </summary>
 public static class Board 
 {
+    // Die Farbe, welche den Anwendenden beim Oeffnen der Schach-Szene zugewiesen wurde
     private static int PlayerColor = -1;
 
     private static int MoveCount = 0;
 
+    // 8x8- und 12x10-Darstellung
     private static int[] Square64;
     private static int[] Square120;
 
+    // Bitboards fuer die Positionsspeicherung aller Figuren
     private static ulong[] Bitboards;
 
     private static bool WhiteToMove = true;
@@ -20,13 +26,22 @@ public static class Board
     public static Stack<ulong> RepetitionPositionHistroy;
     public static List<Move> AllGameMoves;
 
-    
+
     #region ZUG
 
+    // Zu Grossteilen uebernommen von: https://github.com/SebLague/Chess-Coding-Adventure/blob/Chess-V2-UCI/Chess-Coding-Adventure/src/Core/Board/Board.cs
+    // Eigene (schlechtere) Methodik in der GitHub-History bevor der Version Refactoring einsehbar
+
+    /// <summary>
+    /// Die Funktion <c>MakeMove</c> aktualisiert die interne Brettdarstellung bei einem neuen Zug.
+    /// </summary>
+    /// <param name="move">Der zu spielende Zug</param>
+    /// <param name="engineSearch">Wird der Zug fuer die Engine-Suche gespielt?</param>
     public static void MakeMove(Move move, bool engineSearch = false)
     {
         try
         {
+            // Informationen ueber den Zug
             int startSquare120 = ConvertIndex64To120(move.StartSquare);
             int targetSquare120 = ConvertIndex64To120(move.TargetSquare);
             int moveFlag = move.MoveFlag;
@@ -43,8 +58,6 @@ public static class Board
             ulong newZobristKey = CurrentPositionState.zobristKey;
             int newCastlingRights = CurrentPositionState.castlingRights;
             int newEnPassantSquare = -1;
-
-            if (moveFlag == Move.CastleFlag && !Piece.IsType(movedPiece, Piece.KING)) Debug.LogError("Castle Error");
 
             // Aktualisiert die bewegte Figur
             MovePiece(movedPiece, startSquare120, targetSquare120);
@@ -155,7 +168,7 @@ public static class Board
             int newFiftyMoveCounter = CurrentPositionState.fiftyMoveCounter + 1;
 
             // Bauernzuege oder das Schlagen einer Figur erneuert die 50-Zuege-Regel. Ausserdem
-            // erneuern diese Bedingungen das Unentschieden durch dreifache Zugwiederholung.
+            // erneuern diese die Bedingungen fuer ein Unentschieden durch dreifache Zugwiederholung.
             if (Piece.IsType(movedPiece, Piece.PAWN) || capturedPieceType != Piece.NONE)
             {
                 if (!engineSearch)
@@ -165,7 +178,7 @@ public static class Board
                 newFiftyMoveCounter = 0;
             }
 
-            // Neuer Position State
+            // Neuer Positionsstatus
             PositionState newState = new(capturedPieceType, newEnPassantSquare, newCastlingRights, newFiftyMoveCounter, newZobristKey);
             PositionStateHistory.Push(newState);
             CurrentPositionState = newState;
@@ -187,16 +200,20 @@ public static class Board
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>UnmakeMove</c> aktualisiert die interne Brettdarstellung fuer ein Zug rueckgaengig.
+    /// </summary>
+    /// <param name="move">Der rueckgaengige zu machende Zug</param>
+    /// <param name="engineSearch">Wird der Zug fuer die Engine-Suche rueckgaengig gemacht?</param>
     public static void UnmakeMove(Move move, bool engineSearch = false)
     {
         try
         {
-            // Swap colour to move
             WhiteToMove = !WhiteToMove;
 
             bool undoingWhiteMove = WhiteToMove;
 
-            // Get move info
+            // Informationen ueber den Zug
             int movedFrom = ConvertIndex64To120(move.StartSquare);
             int movedTo = ConvertIndex64To120(move.TargetSquare);
             int moveFlag = move.MoveFlag;
@@ -210,7 +227,7 @@ public static class Board
             int movedPieceType = Piece.IsPieceType(movedPiece);
             int capturedPieceType = CurrentPositionState.capturedPieceType;
 
-            // If undoing promotion, then remove piece from promotion square and replace with pawn
+            // Macht die Umwandlung rueckgaengig und erschafft den umgewandelten Bauern
             if (undoingPromotion)
             {
                 int promotedPiece = Square120[movedTo];
@@ -221,7 +238,7 @@ public static class Board
 
             MovePiece(movedPiece, movedTo, movedFrom);
 
-            // Undo capture
+            // Macht das Schlagen einer Figur rueckgaengig
             if (undoingCapture)
             {
                 int captureSquare = movedTo;
@@ -232,17 +249,17 @@ public static class Board
                     captureSquare = movedTo + (undoingWhiteMove ? -10 : 10);
                 }
 
-                // Add back captured piece
+                // Kreiert die geschlagene Figur
                 ToggleSquare(capturedPiece, captureSquare);
 
                 Square120[captureSquare] = capturedPiece;
             }
 
 
-            // Update king
+            // Aktualisiert den Koenig
             if (movedPieceType is Piece.KING)
             {
-                // Undo castling
+                // Macht die Rochade rueckgaengig
                 if (moveFlag is Move.CastleFlag)
                 {
                     int rookPiece = Piece.ROOK | moveColor;
@@ -250,7 +267,7 @@ public static class Board
                     int rookSquareBeforeCastling = kingside ? movedTo + 1 : movedTo - 2;
                     int rookSquareAfterCastling = kingside ? movedTo - 1 : movedTo + 1;
 
-                    // Undo castling by returning rook to original square
+                    // Setzt den Turm auf sein Ursprungsfeld zurueck
                     MovePiece(rookPiece, rookSquareAfterCastling, rookSquareBeforeCastling);
                 }
             }
@@ -264,7 +281,7 @@ public static class Board
                 AllGameMoves.RemoveAt(AllGameMoves.Count - 1);
             }
 
-            // Go back to previous state
+            // Laedt den letzten Positionsstatus
             PositionStateHistory.Pop();
             CurrentPositionState = PositionStateHistory.Peek();
             MoveCount--;
@@ -277,6 +294,13 @@ public static class Board
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>MovePiece</c> bewegt eine Figur in der internen Brettdarstellung 
+    /// und aktualisiert die Brettdarstellung sowie das Bitboard der Figur.
+    /// </summary>
+    /// <param name="piece">Die zu bewegende Figur</param>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="targetSquare">Das Zielfeld in der 12x10-Darstellung</param>
     private static void MovePiece(int piece, int startSquare, int targetSquare)
     {
         ToggleSquares(piece, startSquare, targetSquare);
@@ -285,11 +309,22 @@ public static class Board
         Square120[targetSquare] = piece;
     }
 
+    /// <summary>
+    /// Die Funktion <c>ToggleSquare</c> toggelt ein bestimmtes Bit im Bitboard einer bestimmten Figur. 
+    /// </summary>
+    /// <param name="piece">Die uebergebene Figurenart</param>
+    /// <param name="squareIndex">Das zu toggelnde Feld in der 12x10-Darstellung</param>
     private static void ToggleSquare(int piece, int squareIndex)
     {
         Bitboards[piece] ^= 1ul << ConvertIndex120To64(squareIndex);
     }
 
+    /// <summary>
+    /// Die Funktion <c>ToggleSquares</c> toggelt zwei Bits im Bitboard einer bestimmten Figur.
+    /// </summary>
+    /// <param name="piece">Die Figurenart, die sich bewegt hat</param>
+    /// <param name="squareA">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="squareB">Das Zielfeld in der 12x10-Darstellung</param>
     private static void ToggleSquares(int piece, int squareA, int squareB)
     {
         Bitboards[piece] ^= (1ul << ConvertIndex120To64(squareA) | 1ul << ConvertIndex120To64(squareB));
@@ -298,6 +333,8 @@ public static class Board
     #endregion
 
     #region Getter
+
+    // Die Getters ermoeglichen es anderen Klassen, auf Variablen von der internen Brettdarstellung zuzugreifen
 
     public static int[] GetSquare120()
     {
@@ -353,6 +390,8 @@ public static class Board
     #endregion
 
     #region Setter
+
+    // Die Setters ermoeglichen es anderen Klassen, Variablen von der internen Brettdarstellung zu veraendern.
 
     public static void SetSquare64(int[] square64)
     {
@@ -522,6 +561,12 @@ public static class Board
         return s;
     }
 
+    /// <summary>
+    /// Die Funktion <c>SquareToIndex</c> gibt den Index in der 12x10-Darstellung fuer 
+    /// ein in der algebraischen Notation (bspw. A3 oder H5) uebergebenes Feld zurueck.
+    /// </summary>
+    /// <param name="algebraicNotation">Feld in der algebraischen Notation (bspw. A3, H5)</param>
+    /// <returns>Gibt den Feldindex in der 12x10-Darstellung zurueck</returns>
     public static int SquareToIndex(string algebraicNotation)
     {
         if (algebraicNotation.Length != 2)
@@ -539,11 +584,11 @@ public static class Board
             return -1;
         }
 
-        // Convert file and rank to corresponding integers
+        // Konvertiert die Spalte und Reihe in Integer-Werte
         int fileIndex = fileChar - 'a';
         int rankIndex = '8' - rankChar;
 
-        // Calculate the index in a 12x10 board representation
+        // Berechnet den Index in der 12x10-Darstellung
         int index = 21 + fileIndex + rankIndex * 10;
         Debug.Log(algebraicNotation + " : " + index + " : " + fileIndex + " : " + rankIndex);
         return index;
@@ -551,6 +596,9 @@ public static class Board
 
     #endregion
 
+    /// <summary>
+    /// Die Funktion <c>Initialize</c> bereitet die interne Brettdarstellung auf ein neues Spiel vor.
+    /// </summary>
     public static void Initialize()
     {
         AllGameMoves = new();

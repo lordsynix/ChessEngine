@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+/// <summary>
+/// Die Klasse <c>MoveGenerator</c> ist fuer die Generierung von Zuegen zustaendig.
+/// </summary>
 public static class MoveGenerator
 {
     public static readonly int[] DirectionOffsets = { 10, -10, 1, -1, 11, -11, 9, -9 };
@@ -18,6 +21,12 @@ public static class MoveGenerator
     private static int opponentColor;
     private static PositionState currentPositionState;
 
+    /// <summary>
+    /// Die Funktion <c>GenerateMovesForPiece</c> generiert alle moeglichen Zuege fuer eine Figur.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Der Figurentyp, fuer den Zuege generiert werden</param>
+    /// <returns>Liste mit allen moeglichen Zuegen fuer diese Figur</returns>
     public static List<Move> GenerateMovesForPiece(int startSquare, int piece)
     {
         moves = new();
@@ -59,6 +68,10 @@ public static class MoveGenerator
         return moves;
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateMoves</c> generiert alle moeglichen Zuege in einer Brettstellung fuer die spielende Partei.
+    /// </summary>
+    /// <returns>Liste mit allen moeglichen Zuegen fuer die spielende Partei</returns>
     public static List<Move> GenerateMoves()
     {
         square120 = Board.GetSquare120();
@@ -93,6 +106,11 @@ public static class MoveGenerator
         return moves;
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateSlidingMoves</c> generiert alle moeglichen Zuege fuer ein Laeufer, Turm oder eine Dame.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Die Figurenart</param>
     static void GenerateSlidingMoves(int startSquare, int piece)
     {
         int startDirIndex = Piece.IsType(piece, Piece.BISHOP) ? 4 : 0;
@@ -111,6 +129,11 @@ public static class MoveGenerator
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateKnightMoves</c> generiert alle moeglichen Zuege fuer ein Pferd.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Die Figurenart</param>
     static void GenerateKnightMoves(int startSquare, int piece)
     {
         for (int dirIndex = 0; dirIndex < 8; dirIndex++)
@@ -122,6 +145,11 @@ public static class MoveGenerator
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>GeneratePawnMoves</c> generiert alle moeglichen Zuege fuer ein Bauer.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Die Figurenart</param>
     static void GeneratePawnMoves(int startSquare, int piece)
     {
         for (int dirIndex = 0; dirIndex < 4; dirIndex++)
@@ -153,6 +181,11 @@ public static class MoveGenerator
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateKingMoves</c> generiert alle moeglichen Zuege fuer Koenig.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Die Figurenart</param>
     static void GenerateKingMoves(int startSquare, int piece)
     {
         for (int dirOffset = 0; dirOffset < 8; dirOffset++)
@@ -165,28 +198,35 @@ public static class MoveGenerator
         GenerateCastlingMoves(startSquare);
     }
 
+    /// <summary>
+    /// Ueberprueft, ob ein Zug legal ist.
+    /// </summary>
+    /// <param name="pieceOnTargetSquare">Der Wert der internen Brettdarstellung auf dem Zielfeld des Zuges</param>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="targetSquare">Das Zielfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Die Figurenart</param>
+    /// <param name="doubleAdvance">Ist der Zug ein doppelter Bauerzug?</param>
+    /// <returns>Gibt zurueck, ob der Zug gespielt werden darf</returns>
     static bool LegitimateMove(int pieceOnTargetSquare, int startSquare, int targetSquare, int piece, bool doubleAdvance = false)
     {
         // Spielfeldrand erreicht
         if (pieceOnTargetSquare == -1)
         {
-            //Debug.Log("Move invalid because square " + targetSquare + " is over the edge.");
             return false;
         }
 
         // Blockiert von eigenen Figur
         if (Piece.IsColor(pieceOnTargetSquare, friendlyColor))
         {
-            //Debug.Log("Move invalid because friendly piece at " + targetSquare + " : " + pieceOnTargetSquare + " : " + startSquare);
             return false;
         }
 
-        bool promotion = CanPromote(startSquare, targetSquare, piece);
+        bool promotion = CanPromote(targetSquare, piece);
 
         // Freies Feld
         if (!CanCapture(pieceOnTargetSquare, startSquare, targetSquare, piece))
         {
-            if (promotion) GeneratePromotionMoves(startSquare, targetSquare, 0);
+            if (promotion) GeneratePromotionMoves(startSquare, targetSquare, false);
             else
             {
                 // Doppelter Bauerzug, kreiert ein mögliches EnPassant Schlagfeld.
@@ -208,16 +248,25 @@ public static class MoveGenerator
         return true;
     }
 
+    /// <summary>
+    /// Die Funktion <c>CanCapture</c> ueberprueft, ob eine gegnerische Figur mit dem Zug geschlagen werden kann.
+    /// </summary>
+    /// <param name="pieceOnTargetSquare">Der Wert der internen Brettdarstellung auf dem Zielfeld des Zuges</param>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="targetSquare">Das Zielfeld in der 12x10-Darstellung</param>
+    /// <param name="piece">Die Figurenart</param>
+    /// <returns>Gibt zurueck, ob eine Figur geschlagen werden kann</returns>
     static bool CanCapture(int pieceOnTargetSquare, int startSquare, int targetSquare, int piece)
     {
         // Blockiert von gegnerischen Figur
         if (Piece.IsColor(pieceOnTargetSquare, opponentColor))
         {
-            if (CanPromote(startSquare, targetSquare, piece)) GeneratePromotionMoves(startSquare, targetSquare, 1);
+            if (CanPromote(targetSquare, piece)) GeneratePromotionMoves(startSquare, targetSquare, true);
             else moves.Add(new Move(startSquare, targetSquare));
 
             return true;
         }
+        // Ueberprueft bei einem Bauer, ob ein EnPassant-Schlag moeglich ist
         else if (Piece.IsPawn(piece))
         {
             if (targetSquare == currentPositionState.enPassantSquare)
@@ -229,7 +278,13 @@ public static class MoveGenerator
         return false;
     }
 
-    static bool CanPromote(int startSquare, int targetSquare, int piece)
+    /// <summary>
+    /// Die Funktion <c>CanPromote</c> ueberprueft, ob eine Umwandlung stattfinden kann.
+    /// </summary>
+    /// <param name="targetSquare">Das Zielfeld in der 12x10-Darstellung</param>
+    /// <param name="piece"></param>
+    /// <returns></returns>
+    static bool CanPromote(int targetSquare, int piece)
     {
         if (!Piece.IsPawn(piece))
             return false;
@@ -240,9 +295,15 @@ public static class MoveGenerator
         return false;
     }
 
-    static void GeneratePromotionMoves(int startSquare, int targetSquare, int capture)
+    /// <summary>
+    /// Die Funktion <c>GeneratePromotionMoves</c> generiert alle Umwandlungszuege.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="targetSquare">Das Zielfeld in der 12x10-Darstellung</param>
+    /// <param name="capture">Wird dabei eine Figur geschlagen?</param>
+    static void GeneratePromotionMoves(int startSquare, int targetSquare, bool capture)
     {
-        if (capture == 1)
+        if (capture)
         {
             if (targetSquare == startSquare + WhitePawnOffsets[0] || targetSquare == startSquare + BlackPawnOffsets[0])
                 return;
@@ -254,6 +315,10 @@ public static class MoveGenerator
         moves.Add(new Move(startSquare, targetSquare, Move.PromoteToKnightFlag));
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateCastlingMoves</c> generiert alle Rochadezuege.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
     static void GenerateCastlingMoves(int startSquare)
     {
         int[] CastleOffsets = { 2, -2 };
@@ -289,6 +354,13 @@ public static class MoveGenerator
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>GenerateCastlingPermission</c> ueberprueft, ob ein Koenig rochieren darf.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
+    /// <param name="offset">Offset fuer den Koenig (2 oder -2)</param>
+    /// <param name="kingside">Handelt es sich um eine kurze oder lange Rochade?</param>
+    /// <returns>Gibt zurueck, ob der Koenig diesen Rochadezug ausfuehren darf</returns>
     static bool GenerateCastlingPermission(int startSquare, int offset, bool kingside)
     {
         // Ueberprueft, ob die Felder zwischen Koenig und Turm leer sind.

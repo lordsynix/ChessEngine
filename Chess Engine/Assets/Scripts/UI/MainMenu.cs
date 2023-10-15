@@ -4,6 +4,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Die Klasse <c>MainMenu</c> dient der Ermittlung des Nutzernamen und Verwaltung von 
+/// UI-Elementen. Die Klasse hat keinen Einfluss auf die Arbeit und kann vernachlaessigt werden.
+/// </summary>
 public class MainMenu : MonoBehaviour
 {
     public GameObject usernameMenu;

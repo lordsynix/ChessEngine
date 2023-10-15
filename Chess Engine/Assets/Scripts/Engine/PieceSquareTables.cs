@@ -4,7 +4,7 @@
 /// </summary>
 public static class PieceSquareTables
 {
-    // Basierend auf folgenden Werten: http://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19
+    // Basierend auf folgenden Werten: https://github.com/SebLague/Chess-Coding-Adventure/blob/Chess-V2-UCI/Chess-Coding-Adventure/src/Core/Evaluation/PieceSquareTable.cs
 
     public static readonly int[] WhiteKingValues = { 
             -80, -70, -70, -70, -70, -70, -70, -80, 

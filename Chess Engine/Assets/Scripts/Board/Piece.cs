@@ -26,10 +26,10 @@ public static class Piece
     /// Die Funktion <c>IsType</c> ueberprueft, ob eine uebergebene
     /// Figur mit einer ausgewaehlten Figurenart uebereinstimmt.
     /// </summary>
-    /// <param name="piece">Die zu ueberpruefende Figur.</param>
-    /// <param name="pieceType">Die Figurenart, auf die Figur ueberprueft werden soll.</param>
+    /// <param name="piece">Die zu ueberpruefende Figur</param>
+    /// <param name="pieceType">Die Figurenart, auf die Figur ueberprueft werden soll</param>
     /// <returns>Gibt zurueck, ob die uebergebene Figur mit
-    /// der ausgewaehlten Figurenart uebereinstimmt.</returns>
+    /// der ausgewaehlten Figurenart uebereinstimmt</returns>
     public static bool IsType(int piece, int pieceType)
     {
         switch (pieceType)
@@ -74,6 +74,11 @@ public static class Piece
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>IsPieceType</c> gibt fuer eine uebergebene Figur den int-Wert ihrer Figurenart zurueck.
+    /// </summary>
+    /// <param name="piece">Der Wert der Figurenart</param>
+    /// <returns></returns>
     public static int IsPieceType(int piece)
     {
         switch (piece)
@@ -168,10 +173,10 @@ public static class Piece
 
     /// <summary>
     /// Die Funktion <c>IsSlidingPiece</c> ueberprueft, ob
-    /// sich eine Figur schraeg ueber das Brett bewegen kann.
+    /// die Figur ein Laeufer, Turm oder eine Dame ist.
     /// </summary>
     /// <param name="piece">Die zu ueberpruefende Figur</param>
-    /// <returns>Gibt zurueck, ob die Funktion auf die uebergebene Figur zutrifft</returns>
+    /// <returns>Gibt zurueck, ob die Figur ein Laeufer, Turm oder eine Dame ist.</returns>
     public static bool IsSlidingPiece(int piece)
     {
         // Figur ist ein Laeufer
@@ -234,6 +239,11 @@ public static class Piece
         return false;
     }
 
+    /// <summary>
+    /// Die Funktion <c>CharFromPieceValue</c> gibt den char-Wert der Figurenart der uebergebenen Figur zurueck.
+    /// </summary>
+    /// <param name="piece">Die uebergebene Figurenart</param>
+    /// <returns>char-Wert fuer die Figurenart</returns>
     public static char CharFromPieceValue(int piece)
     {
         bool isWhite = IsColor(piece, WHITE);

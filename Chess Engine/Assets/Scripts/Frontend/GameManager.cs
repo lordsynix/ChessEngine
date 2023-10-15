@@ -8,6 +8,10 @@ using UnityEngine.UI;
 
 using Debug = UnityEngine.Debug;
 
+/// <summary>
+/// Die Klasse <c>GameManager</c> dient der Kommunkation zwischen dem Front- und Backend der Anwendung. Die Klasse beinhaltet
+/// einige Funktionen, um die UI-Elemente zu aktualisieren, was fuer das Verstaendnis der Anwendung nicht relevant ist.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
@@ -43,11 +47,14 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public List<GameObject> VisualizedMoves = new();
 
     private Move curMove;
+
+    // Visualisierung des letzten Zuges von beiden Seiten
     private GameObject lastBlackMoveFromGO;
     private GameObject lastBlackMoveToGO;
     private GameObject lastWhiteMoveFromGO;
     private GameObject lastWhiteMoveToGO;
 
+    // Farben fuer die Visualisierungen der Felder
     private Color32 possibleMoveColor = new Color32(64, 100, 120, 255);
     private Color32 lastBlackMoveColor = new Color32(111, 36, 57, 255);
     private Color32 lastWhiteMoveColor = new Color32(56, 150, 53, 255);
@@ -59,6 +66,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        // Laedt eine neue Brettstellung
         EngineManager.InitializeUCI();
         FENManager.LoadFenPosition();
         Engine.StartSearch();
@@ -67,6 +75,11 @@ public class GameManager : MonoBehaviour
         evaluationBar.localPosition = Board.GetPlayerColor() == Piece.WHITE ? new(0, -150f) : new(0f, 150f);
     }
 
+    /// <summary>
+    /// Die Funktion <c>MakePhysicalMove</c> spielt einen physischen Zug auf der Benutzeroberflaeche.
+    /// </summary>
+    /// <param name="pointerDrag">UI-Element der gespielten Figur</param>
+    /// <param name="targetSlotNum">Index des Zielfeldes in der 12x10-Darstellung</param>
     public void MakePhysicalMove(GameObject pointerDrag, int targetSlotNum)
     {
         // Simuliert einen Drag and Drop, falls nicht das selbe Feld angewählt wurde.
@@ -82,6 +95,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>MakeEngineMove</c> wird mit dem bestmoeglichen Zug vom Backend aufgerufen, um den Zug der Engine auszufuehren.
+    /// </summary>
+    /// <param name="move">Der evaluierte Zug der Engine</param>
     public void MakeEngineMove(Move move)
     {
         StartCoroutine(ExecuteMove(move));
@@ -89,6 +106,7 @@ public class GameManager : MonoBehaviour
 
     IEnumerator ExecuteMove(Move move)
     {
+        // Wartet 0.5s, damit das Program noch funktioniert :)
         yield return new WaitForSeconds(0.5f);
 
         // Weist fuer alle beteiligten Felder die GameObjects zu
@@ -101,6 +119,10 @@ public class GameManager : MonoBehaviour
         targetSquare.GetComponentInChildren<SquareSlot>().VerifyMove(startSquarePiece, true);
     }
 
+    /// <summary>
+    /// Die Funktion <c>VisualizePossibleMoves</c> visualisiert alle moeglichen Zuege fuer eine angeklickte Figur.
+    /// </summary>
+    /// <param name="startSquare">Das Ursprungsfeld in der 12x10-Darstellung</param>
     public void VisualizePossibleMoves(int startSquare)
     {
         DevisualizePossibleMoves();
@@ -125,6 +147,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>DevisualizePossibleMoves</c> loescht die Visualisierung der moeglichen Zuege einer angeklickten Figur.
+    /// </summary>
     public void DevisualizePossibleMoves()
     {
         // Deaktiviert die grafische Visualisierung der moeglichen Felder
@@ -135,6 +160,10 @@ public class GameManager : MonoBehaviour
         VisualizedMoves = new List<GameObject>();
     }
 
+    /// <summary>
+    /// Die Funktion <c>UpdateMoveHistory</c> aktualisiert das UI-Element der gespielten Zuege bei einem Zug.
+    /// </summary>
+    /// <param name="move">Der gespielte Zug</param>
     public void UpdateMoveHistory(Move move)
     {
         // Iniitiert eine neue Zeilen mit Informationen zu einem Zug
@@ -150,12 +179,17 @@ public class GameManager : MonoBehaviour
 
         piece.sprite = BoardGeneration.instance.pieces[Board.PieceOnSquare(Board.ConvertIndex64To120(move.TargetSquare))];
 
+        // Setzt den Anker des UI-Elements um, wenn es mehr als 7 Elemente beinhaltet.
         if (moveCount > 7) (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 0);
 
         // Aktualisiert die Visualisierung des letzten Zuges
         UpdateLastMoveVisualization(move);
     }
 
+    /// <summary>
+    /// Die Funktion <c>UpdateLastMoveVisualization</c> aktualisiert die Visualisierung der zuletzt gespielten Zuge auf dem Brett.
+    /// </summary>
+    /// <param name="move">Der gespielte Zug</param>
     private void UpdateLastMoveVisualization(Move move)
     {
         if (Board.GetWhiteToMove())
@@ -198,6 +232,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Die Funktion <c>SetEvaluationBar</c> aktualisiert den Wert des UI-Bewertungselement neben dem Spielbrett (Evaluation Bar)
+    /// </summary>
+    /// <param name="evaluation"></param>
     public void SetEvaluationBar(int evaluation)
     {
         float side = Board.GetPlayerColor() == Piece.WHITE ? 1f : -1f;
@@ -208,6 +246,11 @@ public class GameManager : MonoBehaviour
         evaluationBar.localPosition = new(0, posY);
     }
 
+    /// <summary>
+    /// Die Funktion <c>ActivatePromotionVisuals</c> oeffnet ein Fenster fuer 
+    /// die Nutzenden, wenn ein Bauer die gegnerische Grundreihe erreicht hat.
+    /// </summary>
+    /// <param name="move">Der gespielte Zug</param>
     public void ActivatePromotionVisuals(Move move)
     {
         bool whiteToMove = Board.GetWhiteToMove();
@@ -224,7 +267,7 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// Die Funktion <c>PromotionPiece</c> wird aufgerufen, wenn ein Bauer die letzte gegnerische Reihe 
-    /// erreicht und der User eine Figur ausgewaehlt hat (Springer, Laeufer, Turm oder Dame).
+    /// erreicht und der User eine Figur in der UI ausgewaehlt hat (Springer, Laeufer, Turm oder Dame).
     /// </summary>
     /// <param name="strPiece">Die ausgewaehlte Figur als char - N,n;B,b;R,r;Q,q</param>
     public void PromotionPiece(string strPiece)
@@ -251,6 +294,9 @@ public class GameManager : MonoBehaviour
         DevisualizePossibleMoves();
     }
 
+    /// <summary>
+    /// Die Funktion <c>OnCheckMate</c> wird beim Spielende aufgerufen.
+    /// </summary>
     public void OnCheckMate()
     {
         diagnosticsWindow.SetActive(false);

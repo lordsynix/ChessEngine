@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.Audio;
 
+/// <summary>
+/// Die Klasse <c>AudioManager</c> dient der Audiowiedergabe und hat keinen anderen Bezug zur eigentlichen Arbeit.
+/// </summary>
 public class AudioManager : MonoBehaviour
 {
 
@@ -26,7 +29,7 @@ public class AudioManager : MonoBehaviour
         Sound s = Array.Find(sounds, sound => sound.name == name);
         if (s == null)
         {
-            Debug.LogWarning("The Audioclip" + name + " couldn't be found");
+            Debug.LogWarning($"The Audioclip {name} couldn't be found");
             return;
         }
         s.source.Play();

@@ -6,9 +6,13 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using static MoveGenerator;
 
-// Importiert verschiedene Klassen von Unity, um den Drag and Drop Mechanismus zu vereinfachen.
+/// <summary>
+/// Die Klasse <c>DragDrop</c> wird von jeder Figur auf der Benutzeroberflaeche 
+/// verwendet, damit die Nutzenden diese ueber den Bildschirm ziehen koennen.
+/// </summary>
 public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler,
                                        IDragHandler, IInitializePotentialDragHandler
+// Importiert verschiedene Klassen von Unity, um den Drag and Drop Mechanismus zu vereinfachen
 {
     public bool foundSquare = false;
 
@@ -30,6 +34,8 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         startPosition = rectTransform.anchoredPosition;
         myCanvas = GetComponent<Canvas>();
     }
+
+    #region Unity Events
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -80,12 +86,6 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         foundSquare = false;
     }
 
-    void ExitDragDrop()
-    {
-        rectTransform.anchoredPosition = startPosition;
-        rectTransform.SetPositionAndRotation(transform.parent.position, Quaternion.identity);
-    }
-
     public void OnDrag(PointerEventData eventData)
     {
         // Verschiebt die Figur mit der Maus.
@@ -97,4 +97,16 @@ public class DragDrop : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, I
         // Deaktiviert das eingebaute Drag and Drop Verhalten von Unity.
         eventData.useDragThreshold = false;
     }
+
+    #endregion
+
+    /// <summary>
+    /// Die Funktion <c>ExitDragDrop</c> setzt die Figur auf ihre Ausgangsposition zurueck.
+    /// </summary>
+    void ExitDragDrop()
+    {
+        rectTransform.anchoredPosition = startPosition;
+        rectTransform.SetPositionAndRotation(transform.parent.position, Quaternion.identity);
+    }
+
 }

@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Die Klasse <c>FENManager</c> ist fuer die Konvertierung von FEN-Strings in die interne Brettdarstellung verantwortlich.
+/// </summary>
 public static class FENManager
 {
     public static string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"; // Ausgangsposition als FEN-String
-    //private const string startFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk ";
-    //private const string startFEN = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 6";
+    //private const string startFEN = "r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b Qk "; // Testposition 1
+    //private const string startFEN = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 6"; // Testposition 2
 
     private static bool WhiteCastleKingside;
     private static bool WhiteCastleQueenside;
@@ -92,7 +95,7 @@ public static class FENManager
                 Board.SetMoveCount(int.Parse(fenMoveCount));
             }
 
-            // Kreiert Position State
+            // Kreiert den Positionsstatus
             int whiteCastle = (WhiteCastleKingside ? 1 << 0 : 0) | (WhiteCastleQueenside ? 1 << 1 : 0);
             int blackCastle = (BlackCastleKingside ? 1 << 2 : 0) | (BlackCastleQueenside ? 1 << 3 : 0);
             int castleRights = whiteCastle | blackCastle;

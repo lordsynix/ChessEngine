@@ -2,6 +2,10 @@ using UnityEngine;
 using System.IO;
 using System;
 
+/// <summary>
+/// Die Klasse <c>Log</c> dient als Debugfunktion, welche ein eigenes Dokument Log.txt
+/// schreibt. War bei der Entwicklung sehr hilfreich, wurde nun allerdings ausgeschalten.
+/// </summary>
 public static class Log
 {
     private static string logFilePath;

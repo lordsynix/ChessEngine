@@ -5,6 +5,10 @@ using System.Drawing;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Die Klasse <c>Diagnostics</c> regelt die Debug-Funktionen, um mich als Entwickler 
+/// zu unterstuetzen. Sie ist fuer das Verstaendnis der Anwendung irrelevant.
+/// </summary>
 public class Diagnostics : MonoBehaviour
 {
     public static Diagnostics Instance;
@@ -20,6 +24,9 @@ public class Diagnostics : MonoBehaviour
 
     #region Visuals
 
+    /// <summary>
+    /// Die Funktion <c>UpdateTranspositionTableVisuals</c> aktualisiert die geschaetzten Werte fuer die Transpositionstabelle.
+    /// </summary>
     public void UpdateTranspositionTableVisuals()
     {
         long usedMemory = TranspositionTable.SizeOfEntry * TranspositionTable.EntryCount;
@@ -28,10 +35,15 @@ public class Diagnostics : MonoBehaviour
         entryCount.text = $"{TranspositionTable.EntryCount} entries";
     }
 
+    /// <summary>
+    /// Die Funktion <c>UpdateDebugInformation</c> aktualisiert die Debug-Werte fuer alle Felder.
+    /// </summary>
+    /// <param name="debugMode">Ist die Anwendung im Debug-Modus?</param>
     public void UpdateDebugInformation(bool debugMode = true)
     {
         List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
 
+        // Schaltet die UI-Elemente zum Debugen aus
         if (!debugMode)
         {
             GameManager.Instance.diagnosticsWindow.SetActive(false);
@@ -62,6 +74,7 @@ public class Diagnostics : MonoBehaviour
             go.transform.GetChild(1).gameObject.SetActive(true);
         }
 
+        // Werte gemaess den Bitboards (Positionsrepraesentierung aller Figuren)
         for (int pieceType = Piece.WHITE + 1; pieceType < Piece.BLACK + 7; pieceType++)
         {
             ulong bitboard = bitboards[pieceType];

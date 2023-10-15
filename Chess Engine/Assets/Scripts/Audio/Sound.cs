@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-// Skript fuer alle Audioquellen
+/// <summary>
+/// Die Klasse <c>Sound</c> dient als Skript fuer alle Audioquellen.
+/// </summary>
 [System.Serializable]
 public class Sound
 {

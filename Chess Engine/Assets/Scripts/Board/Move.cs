@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// The class <c>Move</c> preserves the memory during search by compacting a move into 16bits
-/// with the format "fffftttttttsssssss": Bits 0-5 startSquare, Bits 6-11 targetSquare, Bits 12-15 move flags 
+/// Die Klasse <c>Move</c> spart waehrend der Suche Ressourcen. Die gelingt durch die Verpackung eines Zugs in 16 Bits
+/// mit dem Format "fffftttttttsssssss": Bits 0-5 startSquare, Bits 6-11 targetSquare, Bits 12-15 move flags.
 /// </summary>
 public class Move
 {
+    // Uebernommen von: https://github.com/SebLague/Chess-Coding-Adventure/blob/Chess-V2-UCI/Chess-Coding-Adventure/src/Core/Board/Move.cs
+    // Eigenes System in der GitHub-History bevor der Version Refactoring einsehbar
+
     // 18 Bit Zugwert
     readonly ushort moveValue;
 
@@ -49,6 +52,7 @@ public class Move
         moveValue = (ushort)(startSquare | targetSquare << 6 | flag << 12);
     }
 
+    // Informationen, welche fuer ein Zug abgerufen werden koennen
     public ushort Value => moveValue;
     public bool IsNull => moveValue == 0;
 

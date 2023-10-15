@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Die Klasse <c>ArgumentsParser</c> dient der Ermittlung des Nutzernamen. Die 
+/// Klasse hat keinen Einfluss auf die Arbeit und kann vernachlaessigt werden.
+/// </summary>
 public class ArgumentsParser : MonoBehaviour
 {
     public static ArgumentsParser instance;

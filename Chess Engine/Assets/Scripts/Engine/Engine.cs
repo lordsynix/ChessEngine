@@ -4,6 +4,10 @@ using System.Linq;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
+/// <summary>
+/// Die Klasse <c>Engine</c> bildet unter anderem das Backend meiner Anwendung und ist 
+/// fuer die Suche und Bewertung von Folgezuegen in einer Brettstellung zustaendig.
+/// </summary>
 public static class Engine
 {
     public static TranspositionTable transpositionTable;
@@ -16,6 +20,7 @@ public static class Engine
 
     private static Stopwatch stopwatch;
 
+    // Das Resultat eines Suchvorgangs beinhaltet eine Evaluation sowie einen Suchpfad.
     public struct SearchResult
     {
         public int Evaluation;
@@ -28,6 +33,7 @@ public static class Engine
         }
     }
 
+    // Ausgangswerte fuer die materielle Evaluation
     const int pawnValue = 100;
     const int knightValue = 300;
     const int bishopValue = 320;
@@ -35,6 +41,9 @@ public static class Engine
     const int queenValue = 900;
     const int kingValue = 12000;
 
+    /// <summary>
+    /// Die Funktion <c>StartSearch</c> startet die Suche von Folgezuegen fuer eine gewisse Tiefe.
+    /// </summary>
     public static void StartSearch()
     {
         Log.Message($"Started search with depth {searchDepth}...");
@@ -44,6 +53,9 @@ public static class Engine
         Search();
     }
 
+    /// <summary>
+    /// Die Funktion <c>Search</c> definiert die moeglichen Zuege fuer die Benutzeroberflaeche und sucht Folgezuege in einer Position.
+    /// </summary>
     private static void Search()
     {
         // Generiert und validiert alle moeglichen Zuege
@@ -76,12 +88,14 @@ public static class Engine
         StopSearch(result);
     }
 
+    /// <summary>
+    /// Die Funktion <c>StopSearch</c> verarbeitet die Resultate der Suche und spielt den besten Enginezug.
+    /// </summary>
+    /// <param name="result"></param>
     public static void StopSearch(SearchResult result)
     {
         // Aktualisiert den Wert des UI-Bewertungselement neben dem Spielbrett (Evaluation Bar)
         GameManager.Instance.SetEvaluationBar(result.Evaluation);
-
-        Debug.Log("Alpha-Beta search: " + result.Evaluation);
 
         stopwatch.Stop();
 
@@ -91,11 +105,12 @@ public static class Engine
             if (move != null) searchPath += Board.DesignateMove(move) + ": ";
         }
 
-        //Log.Message($"Bestmove: {Board.DesignateMove(searchPath[0])}");
-        Debug.Log($"Depth {searchDepth}: Positions evaluated: {positionsEvaluated}: Time: {stopwatch.ElapsedMilliseconds} ms");
+        Debug.Log($"Evaluation: {result.Evaluation}Depth {searchDepth}: " +
+                  $"Positions evaluated: {positionsEvaluated}: Time: {stopwatch.ElapsedMilliseconds} ms");
         Debug.Log(searchPath);
         Debug.Log("--------------------------------");
 
+        // Spielt den besten Zug, falls nicht die Anwendenden am Zug sind
         if (Board.GetPlayerColor() == Piece.WHITE != Board.GetWhiteToMove())
         {
             GameManager.Instance.MakeEngineMove(result.SearchPath[0]);
@@ -104,6 +119,10 @@ public static class Engine
         Diagnostics.Instance.UpdateTranspositionTableVisuals();
     }
 
+    /// <summary>
+    /// Die Funktion <c>GetPossibleMoves</c> gibt die moeglichen Zuege unter Beruecksichtigung der "Schach"-Regel zurueck.
+    /// </summary>
+    /// <returns></returns>
     public static List<Move> GetPossibleMoves()
     {
         friendlyColor = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
@@ -140,6 +159,11 @@ public static class Engine
         return OrderMoves(possibleMoves);
     }
 
+    /// <summary>
+    /// Die Funktion <c>GetKingSquare</c> gibt den Feldindex des spielenden Koenigs in der 8x8-Darstellung zurueck.
+    /// </summary>
+    /// <param name="prevKingSq"></param>
+    /// <returns></returns>
     private static int GetKingSquare(int prevKingSq)
     {
         ulong kingBitboard = Board.GetBitboards()[Piece.KING | friendlyColor];
@@ -165,10 +189,17 @@ public static class Engine
         return -1;
     }
 
+    /// <summary>
+    /// Die Funktion <c>OrderMoves</c> ist eine einfache Version des MoveOrdering, welches die Suche 
+    /// beschleunigen sollte. Wertet Rochaden, Umwandlungen und Schlagzuege in der Sortierung auf.
+    /// </summary>
+    /// <param name="moves">Die zu sortierenden Zuege</param>
+    /// <returns></returns>
     private static List<Move> OrderMoves(List<Move> moves)
     {
         List<Move> orderedMoves = new();
 
+        // Priorisiert Rochaden und Umwandlungen
         foreach (Move move in moves)
         {
             if (move.MoveFlag == Move.CastleFlag || move.MoveFlag == Move.PromoteToQueenFlag)
@@ -178,6 +209,7 @@ public static class Engine
         }
         moves = moves.Except(orderedMoves).ToList();
 
+        // Sortiert die Schlagzuege bevorzugt
         foreach (Move move in moves)
         {
             if (Board.PieceOnSquare(Board.ConvertIndex64To120(move.TargetSquare)) != Piece.NONE)
@@ -191,23 +223,37 @@ public static class Engine
         }
         moves = moves.Except(orderedMoves).ToList();
 
+        // Fuegt alle verbleibenden Zuege hinzu
         orderedMoves.AddRange(moves);
 
         return orderedMoves;
     }
 
+    /// <summary>
+    /// Die Funktion <c>AlphaBeta</c> bildet den rekursiven Alpha-Beta-Suchalgorithmus. Gibt 
+    /// die bestmoegliche Position nach einer gewissen fuer die spielende Partei zurueck.
+    /// </summary>
+    /// <param name="possibleMoves">Moegliche Zuege in dieser Iteration</param>
+    /// <param name="depth">Verbleibende Suchtiefe</param>
+    /// <param name="alpha">Alpha-Wert: Start bei negativer Unentlichkeit</param>
+    /// <param name="beta">Beta-Wert: Start bei positiver Unentlichkeit</param>
+    /// <param name="isWhite">Maximierende oder minimierende Partei</param>
+    /// <param name="moveStack">Stapel der Evaluierten Zuege, um den Suchpfad zu bilden</param>
+    /// <returns></returns>
     public static SearchResult AlphaBeta(List<Move> possibleMoves, int depth, int alpha, int beta, bool isWhite, Stack<Move> moveStack = null)
     {
         // Erstellt einen neuen Zugstapel, wenn dieser null ist
         moveStack ??= new Stack<Move>();
 
+        // Abbruchbedingungen: Erreichte Suchtiefe, Patt oder Schachmatt
         if (depth == 0 || possibleMoves.Count == 0)
         {
-            return new SearchResult(Evaluate(depth), new List<Move>(moveStack));
+            return new SearchResult(Evaluate(), new List<Move>(moveStack));
         }
 
         SearchResult bestResult = new();
 
+        // Maximierende Partei
         if (isWhite)
         {
             int maxEvaluation = int.MinValue;
@@ -222,6 +268,7 @@ public static class Engine
                 Board.UnmakeMove(move, true);
                 moveStack.Pop();
 
+                // Besseres Ergebnis als zuvor
                 if (result.Evaluation > maxEvaluation)
                 {
                     maxEvaluation = result.Evaluation;
@@ -234,6 +281,7 @@ public static class Engine
 
             return new SearchResult(maxEvaluation, new List<Move>(bestResult.SearchPath));
         }
+        // Minimierende Partei
         else
         {
             int minEvaluation = int.MaxValue;
@@ -248,6 +296,7 @@ public static class Engine
                 Board.UnmakeMove(move, true);
                 moveStack.Pop();
 
+                // Besseres Ergebnis als zuvor
                 if (result.Evaluation < minEvaluation)
                 {
                     minEvaluation = result.Evaluation;
@@ -262,7 +311,11 @@ public static class Engine
         }
     }
 
-    public static int Evaluate(int depth = -1)
+    /// <summary>
+    /// Die Funktion <c>Evaluate</c> evaluiert eine Brettstellung nach Material und Figurenpositionen.
+    /// </summary>
+    /// <returns></returns>
+    public static int Evaluate()
     {
         // Ueberprueft in der Transpositionstabelle, ob die Bewertung fuer diese Position bereits existiert
         PositionState currentPositionState = Board.GetCurrentPositionState();
@@ -308,16 +361,22 @@ public static class Engine
             blackEvaluation += color == Piece.BLACK ? evaluation : 0;
             evaluation = 0;
         }
-        //Debug.Log("White " + whiteEvaluation + " Black " + blackEvaluation);
 
         positionsEvaluated++;
         evaluation = whiteEvaluation - blackEvaluation;
 
-        transpositionTable.Store(currentPositionState.zobristKey, evaluation, depth);
+        transpositionTable.Store(currentPositionState.zobristKey, evaluation);
 
         return evaluation;
     }
 
+    /// <summary>
+    /// Die Funktion <c>EvaluatePiecePosition</c> bewertet die Figurenstellung einer Figur auf dem Brett.
+    /// </summary>
+    /// <param name="square">Feldindex in der 8x8-Darstellung</param>
+    /// <param name="color">Die Farbe der Figur</param>
+    /// <param name="pieceType">Die zu evaluierende Figurenart</param>
+    /// <returns></returns>
     private static int EvaluatePiecePosition(int square, int color, int pieceType)
     {
         try
