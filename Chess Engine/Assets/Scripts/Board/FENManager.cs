@@ -78,9 +78,8 @@ public static class FENManager
 
             // Definiert den Spieler, welcher als naechstes Spielen darf.
             Board.SetWhiteToMove(fenToMove == "w");
-            Board.SetPlayerColor(fenToMove.ToCharArray()[0]);
 
-            BoardGeneration.instance.Generate(square64);
+            BoardGeneration.Instance.Generate(square64);
 
             SetCastlePermissions(fenCastle);
 
@@ -112,7 +111,7 @@ public static class FENManager
             Log.Message($"Exception while loading FEN-String: {ex}");
             Debug.LogException(ex);
 
-            Console.Instance.AddToConsole($"Exception while loading FEN-String: {ex}");
+            if (Console.Instance != null) Console.Instance.AddToConsole($"Exception while loading FEN-String: {ex}");
         }
     }
 

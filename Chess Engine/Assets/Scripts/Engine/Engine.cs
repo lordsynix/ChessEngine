@@ -110,10 +110,13 @@ public static class Engine
         Debug.Log(searchPath);
         Debug.Log("--------------------------------");
 
-        // Spielt den besten Zug, falls nicht die Anwendenden am Zug sind
-        if (Board.GetPlayerColor() == Piece.WHITE != Board.GetWhiteToMove())
+        if (GameManager.GameMode == GameManager.Mode.HumanComputer)
         {
-            GameManager.Instance.MakeEngineMove(result.SearchPath[0]);
+            // Spielt den besten Zug, falls nicht die Anwendenden am Zug sind
+            if (Board.GetPlayerColor() == Piece.WHITE != Board.GetWhiteToMove())
+            {
+                GameManager.Instance.MakeEngineMove(result.SearchPath[0]);
+            }
         }
 
         Diagnostics.Instance.UpdateTranspositionTableVisuals();

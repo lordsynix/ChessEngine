@@ -41,7 +41,7 @@ public class Diagnostics : MonoBehaviour
     /// <param name="debugMode">Ist die Anwendung im Debug-Modus?</param>
     public void UpdateDebugInformation(bool debugMode = true)
     {
-        List<GameObject> squaresGO = BoardGeneration.instance.squaresGO;
+        List<GameObject> squaresGO = BoardGeneration.Instance.squaresGO;
 
         // Schaltet die UI-Elemente zum Debugen aus
         if (!debugMode)

@@ -17,9 +17,6 @@ public class MainMenu : MonoBehaviour
 
     private void Start()
     {
-        // Startet die Hintergrundmusik des Hauptmenues.
-        FindObjectOfType<AudioManager>().Play("theme_mainmenu");
-
         username = ArgumentsParser.instance.GetArg("-username");
 
         // Uebernimmt den Benutzername, falls das Spiel mit dem Launcher gestartet wurde.
@@ -29,6 +26,10 @@ public class MainMenu : MonoBehaviour
         }
 
         Username();
+
+        // Startet die Hintergrundmusik des Hauptmenues.
+        bool music = PlayerPrefs.GetInt("Music") == 1;
+        if (music) FindObjectOfType<AudioManager>().Play("theme_mainmenu");
     }
 
     private void Username()
@@ -39,6 +40,14 @@ public class MainMenu : MonoBehaviour
         {
             usernameMenu.SetActive(true);
         }
+
+
+        if (!PlayerPrefs.HasKey("lightCol")) PlayerPrefs.SetString("lightCol", "DDC39C");
+        if (!PlayerPrefs.HasKey("darkCol")) PlayerPrefs.SetString("darkCol", "936D4B");
+
+        if (!PlayerPrefs.HasKey("Fullscreen")) PlayerPrefs.SetInt("Fullscreen", 1);
+        if (!PlayerPrefs.HasKey("Music")) PlayerPrefs.SetInt("Music", 1);
+        if (!PlayerPrefs.HasKey("SFX")) PlayerPrefs.SetInt("SFX", 1);
     }
 
     #region Buttons

@@ -1,11 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
 using Debug = UnityEngine.Debug;
 
 /// <summary>
@@ -28,6 +26,7 @@ public class GameManager : MonoBehaviour
     public GameObject moveInformationPrefab;
     public GameObject moveInformationHolder;
     public RectTransform evaluationBar;
+    public InputField fenInputField; 
 
     public enum Mode
     {
@@ -66,13 +65,41 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Laedt eine neue Brettstellung
-        EngineManager.InitializeUCI();
-        FENManager.LoadFenPosition();
-        Engine.StartSearch();
+        // Bereitet ein neues Spiel vor
+        NewGame();
 
         // Richtet die Evaluation Bar fuer die richtige Seite aus
         evaluationBar.localPosition = Board.GetPlayerColor() == Piece.WHITE ? new(0, -150f) : new(0f, 150f);
+    }
+
+    /// <summary>
+    /// Die Funktion <c>NewGame</c> bereitet die Anwendung auf ein neues Spiel vor.
+    /// </summary>
+    private void NewGame(string customFen = null)
+    {
+        if (!string.IsNullOrEmpty(customFen))
+        {
+            // Setzt das Brett zurueck
+            BoardGeneration.Instance.ResetBoard();
+            FENManager.startFEN = customFen;
+
+            // Setzt die Move History zurueck
+            for (int i = moveInformationHolder.transform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(moveInformationHolder.transform.GetChild(i).gameObject);
+            }
+            (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 1);
+        }
+
+        // Initialisiert die Klassen
+        Log.Initialize();
+        Board.Initialize();
+        Engine.Initialize();
+        Zobrist.Initialize();
+
+        // Laedt eine neue Brettstellung
+        FENManager.LoadFenPosition();
+        Engine.StartSearch();
     }
 
     /// <summary>
@@ -110,8 +137,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         // Weist fuer alle beteiligten Felder die GameObjects zu
-        GameObject startSquare = BoardGeneration.instance.squaresGO[move.StartSquare];
-        GameObject targetSquare = BoardGeneration.instance.squaresGO[move.TargetSquare];
+        GameObject startSquare = BoardGeneration.Instance.squaresGO[move.StartSquare];
+        GameObject targetSquare = BoardGeneration.Instance.squaresGO[move.TargetSquare];
 
         GameObject startSquarePiece = startSquare.transform.GetChild(0).gameObject;
 
@@ -135,7 +162,7 @@ public class GameManager : MonoBehaviour
             if (move.StartSquare != Board.ConvertIndex120To64(startSquare)) continue;
 
             int targetSquare = move.TargetSquare;
-            GameObject targetSquareGO = BoardGeneration.instance.squaresGO[targetSquare];
+            GameObject targetSquareGO = BoardGeneration.Instance.squaresGO[targetSquare];
 
             // Verhindert, dass eine existierende Visualisierung ueberschrieben wird
             if (!targetSquareGO.transform.GetChild(2).gameObject.activeSelf)
@@ -177,7 +204,7 @@ public class GameManager : MonoBehaviour
         prefabTexts[1].text = Board.DesignateSquare(Board.ConvertIndex64To120(move.StartSquare));
         prefabTexts[2].text = Board.DesignateSquare(Board.ConvertIndex64To120(move.TargetSquare));
 
-        piece.sprite = BoardGeneration.instance.pieces[Board.PieceOnSquare(Board.ConvertIndex64To120(move.TargetSquare))];
+        piece.sprite = BoardGeneration.Instance.pieces[Board.PieceOnSquare(Board.ConvertIndex64To120(move.TargetSquare))];
 
         // Setzt den Anker des UI-Elements um, wenn es mehr als 7 Elemente beinhaltet.
         if (moveCount > 7) (moveInformationHolder.transform as RectTransform).pivot = new Vector2(0.5f, 0);
@@ -200,8 +227,8 @@ public class GameManager : MonoBehaviour
             if (lastBlackMoveToGO != null) lastBlackMoveToGO.SetActive(false);
 
             // Weist die neuen Felder zu
-            lastBlackMoveFromGO = BoardGeneration.instance.squaresGO[move.StartSquare].transform.GetChild(2).gameObject;
-            lastBlackMoveToGO = BoardGeneration.instance.squaresGO[move.TargetSquare].transform.GetChild(2).gameObject;
+            lastBlackMoveFromGO = BoardGeneration.Instance.squaresGO[move.StartSquare].transform.GetChild(2).gameObject;
+            lastBlackMoveToGO = BoardGeneration.Instance.squaresGO[move.TargetSquare].transform.GetChild(2).gameObject;
 
             // Visualisiert das Ursprungsfeld des Zuges
             lastBlackMoveFromGO.GetComponent<Image>().color = lastBlackMoveColor;
@@ -219,8 +246,8 @@ public class GameManager : MonoBehaviour
             if (lastWhiteMoveToGO != null) lastWhiteMoveToGO.SetActive(false);
 
             // Weist die neuen Felder zu
-            lastWhiteMoveFromGO = BoardGeneration.instance.squaresGO[move.StartSquare].transform.GetChild(2).gameObject;
-            lastWhiteMoveToGO = BoardGeneration.instance.squaresGO[move.TargetSquare].transform.GetChild(2).gameObject;
+            lastWhiteMoveFromGO = BoardGeneration.Instance.squaresGO[move.StartSquare].transform.GetChild(2).gameObject;
+            lastWhiteMoveToGO = BoardGeneration.Instance.squaresGO[move.TargetSquare].transform.GetChild(2).gameObject;
 
             // Visualisiert das Ursprungsfeld des Zuges
             lastWhiteMoveFromGO.GetComponent<Image>().color = lastWhiteMoveColor;
@@ -305,7 +332,7 @@ public class GameManager : MonoBehaviour
 
         Text text = checkMateWindow.GetComponentInChildren<Text>();
 
-        if (isWhite && !Board.GetWhiteToMove())
+        if (isWhite && !Board.GetWhiteToMove() || isWhite && Board.GetWhiteToMove())
         {
             text.text = "You won!";
         }
@@ -314,6 +341,13 @@ public class GameManager : MonoBehaviour
             text.text = "You lost!";
         }
        
+    }
+
+    public void SubmitFEN()
+    {
+        string fen = fenInputField.text;
+        
+        NewGame(fen);
     }
 
     public void ToggleDebugMode()

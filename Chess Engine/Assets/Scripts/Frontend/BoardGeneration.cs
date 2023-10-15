@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using ColorUtility = UnityEngine.ColorUtility;
 
 /// <summary>
 /// Die Klasse <c>BoardGeneration</c> ist fuer die Generierung der Benutzeroberflaeche
@@ -10,7 +11,7 @@ using UnityEngine.UI;
 /// </summary>
 public class BoardGeneration : MonoBehaviour
 {
-    public static BoardGeneration instance;
+    public static BoardGeneration Instance;
 
     public GameObject squarePrefab;
 
@@ -28,7 +29,28 @@ public class BoardGeneration : MonoBehaviour
 
     private void Awake()
     {
-        instance = this;    
+        Instance = this;
+
+        SetColors();
+    }
+
+    private void SetColors()
+    {
+        Color _lightCol = Color.white;
+        if (ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("lightCol"), out _lightCol))
+        {
+            lightCol = _lightCol;
+        }
+        else
+        {
+            Debug.Log(PlayerPrefs.GetString("lightCol"));
+        }
+
+        Color _darkCol = Color.black;
+        if (ColorUtility.TryParseHtmlString(PlayerPrefs.GetString("darkCol"), out _darkCol))
+        {
+            darkCol = _darkCol;
+        }
     }
 
     /// <summary>
@@ -46,7 +68,7 @@ public class BoardGeneration : MonoBehaviour
     /// </summary>
     private void CreateGraphicalBoard()
     {
-        isWhite = Board.GetWhiteToMove();
+        isWhite = Board.GetPlayerColor() == Piece.WHITE;
         sqNum = isWhite ? 0 : 63;
 
         // Erstellt das Muster des Schachbretts fuer alle 64 Felder
@@ -102,18 +124,26 @@ public class BoardGeneration : MonoBehaviour
         for (int i = 0; i < squaresGO.Count; i++)
         {
             GameObject go = squaresGO[i].transform.GetChild(0).gameObject;
-            if (pieces[squares[i]] != null)
+            try
             {
-                go.GetComponent<Image>().color = new Color32(255, 255, 255, 255);
+
+                if (pieces[squares[i]] != null)
+                {
+                    go.GetComponent<Image>().color = new Color32(255, 255, 255, 255);
+                }
+                go.GetComponent<Image>().sprite = pieces[squares[i]];
             }
-            go.GetComponent<Image>().sprite = pieces[squares[i]];
+            catch
+            {
+                Debug.LogWarning(squares[i]);
+            }
         }
         Log.Message($"Successfully generated pieces");
         Log.Message($"--------------------------------");
     }
 
     /// <summary>
-    /// Die Methode <c>ResetBoard</c> setzt die grafische Repraesentierung der Figuren zurueck.
+    /// Die Methode <c>ResetBoard</c> setzt die grafische Repraesentierung des Spielbretts zurueck.
     /// </summary>
     public void ResetBoard()
     {
@@ -123,5 +153,7 @@ public class BoardGeneration : MonoBehaviour
             piece.color = new Color32(255, 255, 255, 0);
             piece.sprite = null;
         }
+
+        squaresGO.Clear();
     }
 }

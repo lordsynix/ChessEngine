@@ -101,7 +101,7 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         if (move.IsPromotion)
         {
             int playerToMove = Board.GetWhiteToMove() ? Piece.WHITE : Piece.BLACK;
-            slot.sprite = BoardGeneration.instance.pieces[move.PromotionPieceType | playerToMove];
+            slot.sprite = BoardGeneration.Instance.pieces[move.PromotionPieceType | playerToMove];
         }
         else
         {
@@ -112,9 +112,6 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         // Aktualisiert das alte Feld
         pointerDrag.GetComponentInChildren<Image>().sprite = null;
         pointerDrag.GetComponentInChildren<Image>().color = new Color32(255, 255, 255, 0);
-
-        // Loescht den Bauer, der mit EnPssant geschlagen wurde
-        if (move.MoveFlag == Move.EnPassantCaptureFlag) EnPassant(move);
 
         // Rochiert den Turm
         if (move.MoveFlag == Move.CastleFlag)
@@ -130,19 +127,23 @@ public class SquareSlot : MonoBehaviour, IDropHandler
         }
 
         // SFX
+        bool sfx = PlayerPrefs.GetInt("SFX") == 1;
         if (move.MoveFlag == Move.EnPassantCaptureFlag)
         {
-            FindObjectOfType<AudioManager>().Play("move_enpassant");
+            if (sfx) FindObjectOfType<AudioManager>().Play("move_enpassant");
+
+            // Loescht den Bauer, der mit EnPssant geschlagen wurde
+            EnPassant(move);
         }
         else
         {
             if (Board.PieceOnSquare(targetSquare120) == 0)
             {
-                FindObjectOfType<AudioManager>().Play("move_normal");
+                if (sfx) FindObjectOfType<AudioManager>().Play("move_normal");
             }
             else
             {
-                FindObjectOfType<AudioManager>().Play("move_capture");
+                if (sfx) FindObjectOfType<AudioManager>().Play("move_capture");
             }
         }
 
@@ -155,10 +156,10 @@ public class SquareSlot : MonoBehaviour, IDropHandler
 
     void EnPassant(Move move)
     {
-        int enPasSq = Board.ConvertIndex120To64(move.TargetSquare);
+        int enPasSq = move.TargetSquare;
         enPasSq += (move.StartSquare - move.TargetSquare > 0) ? 8 : -8;
         
-        GameObject go = BoardGeneration.instance.squaresGO[enPasSq].transform.GetChild(0).gameObject;
+        GameObject go = BoardGeneration.Instance.squaresGO[enPasSq].transform.GetChild(0).gameObject;
         go.GetComponent<Image>().sprite = null;
         go.GetComponent<Image>().color = new Color32(255, 255, 255, 0);
     }
@@ -179,8 +180,8 @@ public class SquareSlot : MonoBehaviour, IDropHandler
             newRookSq = move.StartSquare - 1;
         } 
 
-        GameObject newSq = BoardGeneration.instance.squaresGO[newRookSq].transform.GetChild(0).gameObject;
-        GameObject oldSq = BoardGeneration.instance.squaresGO[oldRookSq].transform.GetChild(0).gameObject;
+        GameObject newSq = BoardGeneration.Instance.squaresGO[newRookSq].transform.GetChild(0).gameObject;
+        GameObject oldSq = BoardGeneration.Instance.squaresGO[oldRookSq].transform.GetChild(0).gameObject;
 
         // Aktualisiert das neue Feld des Turms
         newSq.GetComponent<Image>().sprite = oldSq.GetComponent<Image>().sprite;
