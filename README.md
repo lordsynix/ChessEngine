@@ -8,7 +8,7 @@
 4) Select MainMenu in the editor under Assets/Scenes/MainMenu
 
 ## Getting started with my Launcher:
-1) Visit https://packentertainment.net
+1) Visit [https://packentertainment.net](https://packentertainment.net/launcher)
 2) Click Download Launcher
 3) Follow the steps shown
 4) Download the project "Chess Engine"
